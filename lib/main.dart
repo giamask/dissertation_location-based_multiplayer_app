@@ -1,5 +1,7 @@
 import 'dart:io';
-
+import 'dart:ui';
+import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:diplwmatikh_map_test/CustomFloatingButton.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -7,6 +9,7 @@ import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'KeyList.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
+import 'PopUp.dart';
 
 void main() => runApp(MyApp());
 
@@ -27,6 +30,7 @@ class MainWidget extends StatefulWidget {
 
 class MainWidgetState extends State<MainWidget> {
   Completer<GoogleMapController> _controller = Completer();
+  Completer finishedMoving;
   static final CameraPosition _kGooglePlex = CameraPosition(
     //target: LatLng(37.745174, 23.427974),
     target: LatLng(39.353284, 21.0),
@@ -41,12 +45,14 @@ class MainWidgetState extends State<MainWidget> {
     return Scaffold(
         body: Stack(
       children: <Widget>[
-        FutureBuilder(
+          FutureBuilder(
             future: getObjectList(),
             builder: (context, snap) {
               getObjectList();
               return GoogleMap(
+                onCameraIdle: ()=>(finishedMoving!=null?finishedMoving.complete():null),
                 markers: objectMarkersFromJson(snap.data),
+                tiltGesturesEnabled: false,
                 mapType: MapType.normal,
                 initialCameraPosition: _kGooglePlex,
                 onMapCreated: (GoogleMapController controller) {
@@ -66,18 +72,26 @@ class MainWidgetState extends State<MainWidget> {
                 myLocationButtonEnabled: false,
               );
             }),
-        AnimatedPositioned(
-          curve: Curves.decelerate,
+        //          Builder(
+        //            builder: (context) {
+        //              return Positioned(
+        //                top: MediaQuery.of(context).size.height/2 - 210,
+        //                left: MediaQuery.of(context).size.width/2 - PopUp.WIDTH/2 ,
+        //                child: PopUp(3, [true, false, false], () {}),
+        //              );
+        //            }
+        //          ),
+          AnimatedPositioned(
           right: 18,
           top: cfbm_opening ? 83 : 43,
-          duration: Duration(milliseconds: 170),
+          duration: Duration(milliseconds: 160),
           onEnd: () {
             if (cfbm_opening) {
               cfbm_open = true;
               setState(() {});
             }
           },
-          child: CustomFloatingButton(
+            child: CustomFloatingButton(
               onTap: () {
                 cfbm_opening = !cfbm_opening;
                 if (cfbm_open) cfbm_open = false;
@@ -88,38 +102,38 @@ class MainWidgetState extends State<MainWidget> {
               color: cfbm_open ? Colors.grey[600] : Colors.blue[900],
               size: 40),
         ),
-        cfbm_open
-            ? Positioned(
-                top: 30,
-                right: 30,
-                child: CustomFloatingButton(
-                    icon: Icons.score, color: Colors.purple, size: 50),
-              )
-            : Container(),
-        cfbm_open
-            ? Positioned(
-                top: 78,
-                right: 65,
-                child: CustomFloatingButton(
-                  icon: Icons.people,
-                  color: Colors.purple,
-                  size: 50,
-                ),
-              )
-            : Container(),
-        cfbm_open
-            ? Positioned(
-                top: 125,
-                right: 30,
-                child: CustomFloatingButton(
-                  image: "assets/QRicon.png",
-                  color: Colors.purple,
-                  size: 50,
-                  onTap: qrScan,
-                ),
-              )
-            : Container(),
-        Positioned(
+          cfbm_open
+              ? Positioned(
+                  top: 30,
+                  right: 30,
+                  child: CustomFloatingButton(
+                      icon: Icons.score, color: Colors.purple, size: 50),
+                )
+              : Container(),
+          cfbm_open
+              ? Positioned(
+                  top: 78,
+                  right: 65,
+                  child: CustomFloatingButton(
+                    icon: Icons.people,
+                    color: Colors.purple,
+                    size: 50,
+                  ),
+                )
+              : Container(),
+          cfbm_open
+              ? Positioned(
+                  top: 125,
+                  right: 30,
+                  child: CustomFloatingButton(
+                    image: "assets/QRicon.png",
+                    color: Colors.purple,
+                    size: 50,
+                    onTap: qrScan,
+                  ),
+                )
+              : Container(),
+          Positioned(
             top: MediaQuery.of(context).size.height * 0.758, child: KeyList()),
       ],
     ));
@@ -131,7 +145,6 @@ class MainWidgetState extends State<MainWidget> {
   }
 
   void qrScan() async {
-    print("here");
     String photoScanResult = await scanner.scan();
   }
 
@@ -181,9 +194,34 @@ class MainWidgetState extends State<MainWidget> {
       if (element["@ObjectId"] == id) return true;
       return false;
     });
-    await moveZoomCamera(
+    moveZoomCamera(
         LatLng(double.parse(object["ObjectLocation"].split(",")[0]),
             double.parse(object["ObjectLocation"].split(",")[1])),
-        18);
+         18);
+    finishedMoving = Completer();
+    await finishedMoving.future;
+    showGeneralDialog(
+        context: context,
+        barrierLabel: "Label",
+        transitionDuration: Duration(milliseconds: 100),
+        barrierDismissible: true,
+        pageBuilder: (context, anim1, anim2) {
+          return Stack(
+            children: <Widget>[
+              Positioned(
+                top: MediaQuery.of(context).size.height / 2 - 210,
+                left: MediaQuery.of(context).size.width / 2 - PopUp.WIDTH / 2,
+                child: GestureDetector(
+                    onTapUp: (details) => details.localPosition.dy > 130 ?Navigator.of(context).pop():null,
+                    child: Container(
+                        height: PopUp.HEIGHT,
+                        width: PopUp.WIDTH,
+                        child: Material(
+                            color: Colors.transparent,
+                            child: PopUp(3, [true, false, false], () {})))),
+              )
+            ],
+          );
+        });
   }
 }
