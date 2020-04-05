@@ -1,4 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
+
+import 'bloc/ResourceManager.dart';
 
 class PopUp extends StatelessWidget {
   final int totalSlots;
@@ -6,8 +10,11 @@ class PopUp extends StatelessWidget {
   static const WIDTH=200.0;
   static const HEIGHT=153.0;
   final Function onButtonTap;
+  final String name;
+  final Image image;
+  final String imageName;
 
-  PopUp( this.totalSlots,this.slotsFilled,this.onButtonTap);
+  PopUp( this.totalSlots,this.slotsFilled,this.onButtonTap,this.name,this.image,this.imageName);
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +32,7 @@ class PopUp extends StatelessWidget {
             border: Border.all(color: Colors.black,width: 0.05)
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
+            padding: const EdgeInsets.fromLTRB(7, 7, 7, 0),
             child: Column(
 
               children:<Widget>[
@@ -33,14 +40,28 @@ class PopUp extends StatelessWidget {
                 children: <Widget>[
                   ClipRRect(
                       borderRadius:BorderRadius.circular(100),
-                      child: Image.asset("assets/1.jpg",height: 50,)),
+                      child: SizedBox(height: 50,child: GestureDetector(
+                          onTap: () {
+                            zoomOnTap(context);
+                          },
+                          child: image))),
                   Spacer(),
-                  Text("Χαγιάτια",style: TextStyle(fontSize: 21,)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal:2.0),
+                    child: Container(
+                      width:100,
+                      child: Column(
+                        children: <Widget>[
+                          Text(name,style: TextStyle(fontSize: (name.length>=9)?(name.length>=11)?15:17:21,),textAlign: TextAlign.center,),
+                        ],
+                      ),
+                    ),
+                  ),
                   Spacer()
                 ],
               ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.symmetric(vertical:8.0),
                   child: Row(
                     children: <Widget>[
                       for (int i=0;i<totalSlots;i++) Padding(
@@ -65,4 +86,19 @@ class PopUp extends StatelessWidget {
       ],
     );
   }
+  void zoomOnTap(BuildContext context) async{
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+
+
+              return Dialog(
+                child: Container(child: PhotoView(tightMode:true,maxScale: 2.0,initialScale:0.55, minScale: 0.55,imageProvider: image.image)),
+                backgroundColor: Colors.transparent,
+              );
+            }
+          );
+
+  }
 }
+

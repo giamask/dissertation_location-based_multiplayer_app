@@ -4,14 +4,14 @@ import 'AnimatorState.dart';
 
 class AnimatorBloc extends Bloc<AnimatorEvent,AnimatorState>{
   @override
-  AnimatorState get initialState => Idle();
+  AnimatorState get initialState => MapView();
 
   @override
   Stream<AnimatorState> mapEventToState(AnimatorEvent event) async*{
-    if (event is MarkerTap){
+    if (event is AnimatorMapShrunk){
 
     }
-    else if(event is PopUpDismiss){
+    else if(event is AnimatorMapExpanded){
 
     }
   }

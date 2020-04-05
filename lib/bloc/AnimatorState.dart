@@ -7,10 +7,7 @@ abstract class AnimatorState extends Equatable{
   List<Object> get props => [];
 }
 
-class Idle extends AnimatorState{}
+class MapView extends AnimatorState{}
 
-class CameraMoveInProgress extends AnimatorState{}
-
-class PopUpDisplay extends AnimatorState{}
-
+class ObjectView extends AnimatorState{}
 

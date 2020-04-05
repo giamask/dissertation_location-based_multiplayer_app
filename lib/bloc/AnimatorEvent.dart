@@ -7,13 +7,7 @@ abstract class AnimatorEvent extends Equatable {
   List<Object> get props=>[];
 }
 
-class MarkerTap extends AnimatorEvent{
-  final String objectId;
-
-  const MarkerTap({@required this.objectId});
-}
-
-class PopUpDismiss extends AnimatorEvent{}
-
+class AnimatorMapShrunk extends AnimatorEvent{}
+class AnimatorMapExpanded extends AnimatorEvent{}
 
 

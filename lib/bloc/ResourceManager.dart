@@ -66,6 +66,7 @@ class ResourceManager{
 
   }
 
+
 // get local path
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
