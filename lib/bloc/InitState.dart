@@ -7,7 +7,6 @@ abstract class InitState extends Equatable{
   @override
   List<Object> get props => [];
 }
-class PreInitialize extends InitState{}
 
 class InitializeInProgress extends InitState{}
 

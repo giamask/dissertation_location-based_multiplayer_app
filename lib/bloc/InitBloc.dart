@@ -20,12 +20,11 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   }
 
   @override
-  InitState get initialState => PreInitialize();
+  InitState get initialState => InitializeInProgress();
 
   @override
   Stream<InitState> mapEventToState(InitEvent event) async*{
     if (event is GameInitialized) {
-      yield PreInitialize();
       ResourceManager resourceManager = ResourceManager();
       await resourceManager.init();
       String assetRegistry = await resourceManager.retrieveAssetRegistry();

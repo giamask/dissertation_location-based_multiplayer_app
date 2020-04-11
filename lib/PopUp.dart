@@ -82,7 +82,7 @@ class PopUp extends StatelessWidget {
   ] ),
           )
         ),
-        Positioned(top:105,left: WIDTH/2 - 138/2 ,child: FloatingActionButton.extended(onPressed: onButtonTap, label: Text("Λεπτομέριες"),backgroundColor: Colors.blue[900],) ,)
+        Positioned(top:105,left: WIDTH/2 - 138/2 ,child: FloatingActionButton.extended(onPressed: onButtonTap, label: Text("Λεπτομέρειες"),backgroundColor: Colors.blue[900],) ,)
       ],
     );
   }
