@@ -74,9 +74,11 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
         body: BlocBuilder<InitBloc, InitState>(builder: (context, state) {
       if (state is InitializeInProgress)
         return Builder(builder: (context) {
+
           BlocProvider.of<InitBloc>(context).add(GameInitialized());
           return Container(child: Center(child: CircularProgressIndicator()));
         });
+
       return Stack(
         children: <Widget>[
           Container(color: Colors.lime),
@@ -92,8 +94,6 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   animationController.value = 0.8;
                   animationController.reverse();
                 }
-
-                print(animationController.value);
                 final double ratio = animationController.value < 0.8
                     ? 1 - animationController.value
                     : 0.2;

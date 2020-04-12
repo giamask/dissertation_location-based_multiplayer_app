@@ -29,7 +29,7 @@ class ResourceManager{
   //Initialization
   Future<void> init() async{
     int version = await _recoverVersionNumber();
-    http.Response response= await  _postRequest("{\"type\":\"asset_registry\",\"version\":$version}");
+    http.Response response= await  _postRequest("{\"type\":\"asset_registry\",\"version\":\"$version\"}");
     if (response==null){
       status=Status.error;
       return;
@@ -75,11 +75,13 @@ class ResourceManager{
 
   //send post request
   Future<http.Response> _postRequest(String json) async {
-    var url = 'http://192.168.2.2/serving_json/jsonserver.php'; //server hardcode here
+    var url = 'http://localhost/serving_json/jsonserver.php'; //server hardcode here
     var body = json;
     var responseBody;
+    print(json);
     http.Response response = await http
         .post(url, headers: {"Content-Type": "application/json"}, body: body);
+    print(response);
     return response;
   }
 
