@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:bloc/bloc.dart';
+import 'package:diplwmatikh_map_test/ObjectView.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/InitEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/ObjDisplayEvent.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:diplwmatikh_map_test/CustomFloatingButton.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,7 @@ import 'package:diplwmatikh_map_test/bloc/InitBloc.dart';
 import 'bloc/AnimatorBloc.dart';
 import 'bloc/DialogState.dart';
 import 'bloc/InitState.dart';
+import 'bloc/ObjDisplayBloc.dart';
 
 void main() => runApp(MyApp());
 
@@ -32,6 +35,9 @@ class MyApp extends StatelessWidget {
           BlocProvider<AnimatorBloc>(
             create: (BuildContext context) => AnimatorBloc(),
           ),
+          BlocProvider<ObjDisplayBloc>(
+            create: (BuildContext context) => ObjDisplayBloc(),
+          )
         ], child: MainWidget()));
   }
 }
@@ -57,6 +63,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
 
   bool cfbm_opening = false;
   bool cfbm_open = false;
+  Animation shrinkExpandAnimation;
 
   @override
   void initState() {
@@ -64,8 +71,16 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
     BlocProvider.of<AnimatorBloc>(context).animationController =
         AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 200),
     );
+    shrinkExpandAnimation = Tween(begin: 0.0, end: 0.8)
+        .animate(BlocProvider.of<AnimatorBloc>(context).animationController);
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
+    BlocProvider.of<AnimatorBloc>(context).animationController.dispose();
   }
 
   @override
@@ -74,37 +89,25 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
         body: BlocBuilder<InitBloc, InitState>(builder: (context, state) {
       if (state is InitializeInProgress)
         return Builder(builder: (context) {
-
           BlocProvider.of<InitBloc>(context).add(GameInitialized());
           return Container(child: Center(child: CircularProgressIndicator()));
         });
 
       return Stack(
         children: <Widget>[
-          Container(color: Colors.lime),
+          ObjectView(BlocProvider.of<ObjDisplayBloc>(context)),
           AnimatedBuilder(
               animation:
                   BlocProvider.of<AnimatorBloc>(context).animationController,
               builder: (context, widget) {
-                final animationController =
-                    BlocProvider.of<AnimatorBloc>(context).animationController;
-
-                if (animationController.value>0.8 && animationController.status==AnimationStatus.forward) animationController.value = 1;
-                if (animationController.value>0.9 && animationController.status==AnimationStatus.reverse) {
-                  animationController.value = 0.8;
-                  animationController.reverse();
-                }
-                final double ratio = animationController.value < 0.8
-                    ? 1 - animationController.value
-                    : 0.2;
-                final double doubleRatio = animationController.value < 0.8
-                    ? 1 - animationController.value * 1.1
-                    : 0.12;
+                Animation animationController = shrinkExpandAnimation;
+                final double ratio = 1 - animationController.value;
+                final double doubleRatio =
+                     1 - animationController.value * 1.1;
                 final double interRatio =
                     animationController.value > 0.55 ? ratio / 0.45 : 1;
                 final double doubleInterRatio =
                     animationController.value > 0.55 ? doubleRatio / 0.4 : 1;
-
                 return Stack(
                   children: <Widget>[
                     Transform(
@@ -126,6 +129,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                               ? cameraIdle.complete()
                               : null),
                           markers: state.props[0],
+                          rotateGesturesEnabled: false,
                           tiltGesturesEnabled: false,
                           mapType: MapType.normal,
                           initialCameraPosition: _kGooglePlex,
@@ -161,8 +165,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                                               0.8) {
                                             return 1.0;
                                           } else if (animationController
-                                                  .value >=
-                                              0.6) {
+                                                  .value >= 0.6) {
                                             return (1 -
                                                 (0.8 -
                                                         animationController
@@ -171,9 +174,12 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                                           }
                                           return 0.0;
                                         }(),
-                                        child: Image.asset(
-                                          "assets/map_icon.png",
-                                          height: 150,
+                                        child: GestureDetector(
+                                          child: Image.asset(
+                                            "assets/map_icon.png",
+                                            height: 150,
+                                          ),
+                                          onTap: ()=> BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapExpanded()),
                                         )))),
                             alignment: Alignment.lerp(Alignment.centerRight,
                                 Alignment.bottomRight, 0.33),
@@ -206,6 +212,8 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
           BlocListener(
               bloc: BlocProvider.of<InitBloc>(context).dialogBloc,
               listener: (context, state) {
+                ObjDisplayBloc displayBloc = BlocProvider.of<ObjDisplayBloc>(context);
+                AnimatorBloc animatorBloc = BlocProvider.of<AnimatorBloc>(context);
                 if (state is Ready) {
                   showGeneralDialog(
                       context: context,
@@ -232,7 +240,11 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                                           child: PopUp(
                                               3,
                                               state.props[2],
-                                              () {},
+                                              () {
+                                                Navigator.of(context).pop();
+                                                displayBloc.add(ObjDisplayChanged(id:state.props[0]));
+                                                animatorBloc.add(AnimatorMapShrunk());
+                                                },
                                               state.props[1],
                                               state.props[4],
                                               state.props[3])))),
@@ -241,6 +253,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                         );
                       });
                 }
+
               },
               child: Container()),
           cfbm_open
@@ -248,7 +261,8 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   top: 30,
                   right: 30,
                   child: CustomFloatingButton(
-                      icon: Icons.score, color: Colors.purple, size: 50),
+                    onTap:()=> BlocProvider.of<ObjDisplayBloc>(context).add(ObjDisplayChanged(id: "4")),
+                      icon: Icons.score, color: Colors.purple[700], size: 50),
                 )
               : Container(),
           cfbm_open
@@ -259,7 +273,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     onTap: () => BlocProvider.of<AnimatorBloc>(context)
                         .add(AnimatorMapShrunk()),
                     icon: Icons.people,
-                    color: Colors.purple,
+                    color: Colors.purple[700],
                     size: 50,
                   ),
                 )
@@ -270,7 +284,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   right: 30,
                   child: CustomFloatingButton(
                     image: "assets/QRicon.png",
-                    color: Colors.purple,
+                    color: Colors.purple[700],
                     size: 50,
                     onTap: qrScan,
                   ),

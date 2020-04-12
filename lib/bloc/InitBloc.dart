@@ -72,6 +72,7 @@ class InitBloc extends Bloc<InitEvent,InitState>{
     MainWidgetState.cameraIdle=Completer();
     await MainWidgetState.cameraIdle.future;
     dialogBloc.add(MarkerTap(id:object["@ObjectId"],name:object["ObjectTitle"],matches: [true,false,false],imagePath: object["ObjectImage"]));
+
   }
 
 

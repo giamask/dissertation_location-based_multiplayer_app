@@ -12,6 +12,7 @@ class CustomFloatingButton extends StatelessWidget{
 
   @override
   Widget build(BuildContext context){
+
     assert(icon!=null || image!=null);
     return Container(
         width: size,

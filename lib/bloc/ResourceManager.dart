@@ -75,7 +75,7 @@ class ResourceManager{
 
   //send post request
   Future<http.Response> _postRequest(String json) async {
-    var url = 'http://localhost/serving_json/jsonserver.php'; //server hardcode here
+    var url = 'http://192.168.2.2/serving_json/jsonserver.php'; //server hardcode here
     var body = json;
     var responseBody;
     print(json);

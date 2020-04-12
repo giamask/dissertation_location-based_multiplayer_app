@@ -2,7 +2,7 @@
 import 'package:flutter/widgets.dart';
 
 class GameKey{
-  int id;
+  String id;
   String desc;
   String imageName;
   Image image;
