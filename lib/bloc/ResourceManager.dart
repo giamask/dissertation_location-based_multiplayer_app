@@ -29,7 +29,7 @@ class ResourceManager{
   //Initialization
   Future<void> init() async{
     int version = await _recoverVersionNumber();
-    http.Response response= await  _postRequest("{\"type\":\"asset_registry\",\"version\":\"$version\"}");
+    http.Response response= await  _getRequest("/init/$version");
     if (response==null){
       status=Status.error;
       return;
@@ -50,7 +50,7 @@ class ResourceManager{
     }
   }
 
-  //ImageRetrieval (example: 01.jpg)
+  //ImageRetrieval (example: 1.jpg)
   Future<Image> retrieveImage(String imageName) async{
     final String path = await _localPath;
     File imageFile=File("$path/assets/$imageName");
@@ -59,7 +59,7 @@ class ResourceManager{
       return Image.file(imageFile);
     }
     on FileSystemException catch(e){
-      http.Response response= await  _postRequest("{\"type\":\"image_request\",\"name\":\"$imageName\"}");
+      http.Response response= await  _getRequest("/image/$imageName");
       imageFile.writeAsBytesSync(response.bodyBytes);
       return Image.file(imageFile);
     }
@@ -74,14 +74,12 @@ class ResourceManager{
   }
 
   //send post request
-  Future<http.Response> _postRequest(String json) async {
-    var url = 'http://192.168.2.2/serving_json/jsonserver.php'; //server hardcode here
-    var body = json;
-    var responseBody;
-    print(json);
+  Future<http.Response> _getRequest(String extension) async {
+    String url = 'http://192.168.2.2:8888'; //server hardcode here
+    print(url+extension);
     http.Response response = await http
-        .post(url, headers: {"Content-Type": "application/json"}, body: body);
-    print(response);
+        .get(url + extension);
+    print(response.body);
     return response;
   }
 
