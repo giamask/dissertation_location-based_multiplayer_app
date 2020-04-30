@@ -188,6 +188,9 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   ],
                 );
               }),
+          Positioned(
+              top: MediaQuery.of(context).size.height * 0.758,
+              child: KeyList()),
           AnimatedPositioned(
             right: 18,
             top: cfbm_opening ? 83 : 43,
@@ -290,9 +293,6 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   ),
                 )
               : Container(),
-          Positioned(
-              top: MediaQuery.of(context).size.height * 0.758,
-              child: KeyList()),
         ],
       );
     }));

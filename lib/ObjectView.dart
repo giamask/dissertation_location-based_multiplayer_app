@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bloc/bloc.dart';
+import 'package:diplwmatikh_map_test/bloc/DragEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/DragState.dart';
 import 'package:diplwmatikh_map_test/bloc/ObjDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/ObjDisplayState.dart';
 import 'package:flutter/material.dart';
@@ -10,15 +12,20 @@ import 'dart:ui' as ui;
 
 import 'bloc/ObjDisplayBloc.dart';
 
-class ObjectView extends StatelessWidget {
+class ObjectView extends StatefulWidget {
   final Bloc<ObjDisplayEvent,ObjDisplayState> bloc;
   ObjectView(this.bloc);
 
   @override
+  _ObjectViewState createState() => _ObjectViewState();
+}
+
+class _ObjectViewState extends State<ObjectView> {
+  @override
   Widget build(BuildContext context) {
 
     return BlocBuilder<ObjDisplayBloc,ObjDisplayState>(
-      bloc: bloc,
+      bloc: widget.bloc,
       builder: (context, state) {
 
 
@@ -37,7 +44,7 @@ class ObjectView extends StatelessWidget {
         }));
 
         return Container(
-          decoration: BoxDecoration(gradient: LinearGradient(begin:Alignment.topCenter ,end:Alignment.bottomCenter,colors:[Colors.blue[700],Colors.purple[600]])),
+          decoration: BoxDecoration(gradient: LinearGradient(begin:Alignment.topCenter ,end:Alignment.bottomCenter,colors:[Colors.blue[900],Colors.purple[600]])),
           child:
             Column(
               children: <Widget>[
@@ -142,17 +149,49 @@ class ObjectView extends StatelessWidget {
                     height: MediaQuery.of(context).size.height/4.2,
                     child: Row(
                       children: <Widget>[
-                        for (int i=0;i<3;i++) Padding(
-                          padding:  EdgeInsets.only(left:MediaQuery.of(context).size.width * 0.051, top: 36, bottom: 36),
+                        for (int i=0;i<3;i++)
+                          Padding(
+                            padding:  EdgeInsets.only(left:MediaQuery.of(context).size.width * 0.051, top: 36, bottom: 36),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(18),
-                            child: DragTarget(
+                            child:  DragTarget<String>(
+                              onWillAccept: (_)=>true,
+                              onAccept: (keyId){
+                                if ( BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragEmpty)
+                                BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].add(DragCommitted(keyId: keyId));
+                              },
 
-                              builder: (context,candidates,rejects) {
+                              builder: (context, candidates, rejected) {
+                                if (candidates.length!=0 && BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragEmpty){
+                                  return Container(
+                                    decoration: BoxDecoration(color: Colors.black12,borderRadius: BorderRadius.circular(18),border: Border.all(color: Colors.white,width: 2),),
+                                    height: MediaQuery.of(context).size.height/4.2,
+                                    width: MediaQuery.of(context).size.width * 0.264,
+                                  );
+                                }
+                                if (BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragRequestInProgress){
+                                  return Container(
+                                    height: MediaQuery.of(context).size.height/4.2,
+                                    width: MediaQuery.of(context).size.width * 0.264,
+                                    color: Colors.black12,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(28.0),
+                                      child: CircularProgressIndicator(backgroundColor: Colors.purple[700],),
+                                    ),
+                                  );
+                                }
+                                if (BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragFull){
+                                  return Container(
+                                    height: MediaQuery.of(context).size.height/4.2,
+                                    width: MediaQuery.of(context).size.width * 0.264,
+                                    color: Color.fromARGB(50, 235, 235, 228),
+                                    child: BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state.props[0],
+                                  );
+                                }
                                 return Container(
-                                  height: MediaQuery.of(context).size.height/4.2,
-                                  width: MediaQuery.of(context).size.width * 0.264,
-                                  color: Colors.black12,
+                                      height: MediaQuery.of(context).size.height/4.2,
+                                      width: MediaQuery.of(context).size.width * 0.264,
+                                      color: Colors.black12,
                                 );
                               }
                             ),

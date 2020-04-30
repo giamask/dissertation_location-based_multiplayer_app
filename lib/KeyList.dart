@@ -67,7 +67,7 @@ class _KeyListState extends State<KeyList> {
       keyWidgets.add(
         Padding(
           padding:  EdgeInsets.symmetric(
-              vertical: vertical, horizontal: horizontal),
+              vertical: MediaQuery.of(context).size.height/18.5, horizontal: horizontal),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -95,7 +95,7 @@ class _KeyListState extends State<KeyList> {
                         ),
                       );
                     }
-                    return Draggable(
+                    return Draggable<String>(
                         data: gameKey.id,
                         childWhenDragging: Container(),
                         feedback: Opacity(
@@ -124,8 +124,6 @@ class _KeyListState extends State<KeyList> {
     return keyWidgets;
 
   }
-
-
 
 
 
