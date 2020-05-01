@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:bloc/bloc.dart';
-import 'package:diplwmatikh_map_test/ObjectView.dart';
+import 'package:diplwmatikh_map_test/BackgroundView.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/InitEvent.dart';
-import 'package:diplwmatikh_map_test/bloc/ObjDisplayEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:diplwmatikh_map_test/CustomFloatingButton.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,8 @@ import 'package:diplwmatikh_map_test/bloc/InitBloc.dart';
 import 'bloc/AnimatorBloc.dart';
 import 'bloc/DialogState.dart';
 import 'bloc/InitState.dart';
-import 'bloc/ObjDisplayBloc.dart';
+import 'bloc/BackgroundDisplayBloc.dart';
+import 'bloc/ResourceManager.dart';
 
 void main() => runApp(MyApp());
 
@@ -35,8 +36,8 @@ class MyApp extends StatelessWidget {
           BlocProvider<AnimatorBloc>(
             create: (BuildContext context) => AnimatorBloc(),
           ),
-          BlocProvider<ObjDisplayBloc>(
-            create: (BuildContext context) => ObjDisplayBloc(),
+          BlocProvider<BackgroundDisplayBloc>(
+            create: (BuildContext context) => BackgroundDisplayBloc(),
           )
         ], child: MainWidget()));
   }
@@ -95,7 +96,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
 
       return Stack(
         children: <Widget>[
-          ObjectView(BlocProvider.of<ObjDisplayBloc>(context)),
+          BackgroundView(BlocProvider.of<BackgroundDisplayBloc>(context)),
           AnimatedBuilder(
               animation:
                   BlocProvider.of<AnimatorBloc>(context).animationController,
@@ -215,7 +216,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
           BlocListener(
               bloc: BlocProvider.of<InitBloc>(context).dialogBloc,
               listener: (context, state) {
-                ObjDisplayBloc displayBloc = BlocProvider.of<ObjDisplayBloc>(context);
+                BackgroundDisplayBloc displayBloc = BlocProvider.of<BackgroundDisplayBloc>(context);
                 AnimatorBloc animatorBloc = BlocProvider.of<AnimatorBloc>(context);
                 if (state is Ready) {
                   showGeneralDialog(
@@ -245,7 +246,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                                               state.props[2],
                                               () {
                                                 Navigator.of(context).pop();
-                                                displayBloc.add(ObjDisplayChanged(id:state.props[0]));
+                                                displayBloc.add(BackgroundDisplayChangedToObject(id:state.props[0]));
                                                 animatorBloc.add(AnimatorMapShrunk());
                                                 },
                                               state.props[1],
@@ -264,7 +265,10 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   top: 30,
                   right: 30,
                   child: CustomFloatingButton(
-                    onTap:()=> BlocProvider.of<ObjDisplayBloc>(context).add(ObjDisplayChanged(id: "4")),
+                    onTap:(){
+                      BlocProvider.of<BackgroundDisplayBloc>(context).add(BackgroundDisplayChangedToScore());
+                      BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapShrunk());
+                    },
                       icon: Icons.score, color: Colors.purple[700], size: 50),
                 )
               : Container(),
@@ -273,8 +277,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   top: 78,
                   right: 65,
                   child: CustomFloatingButton(
-                    onTap: () => BlocProvider.of<AnimatorBloc>(context)
-                        .add(AnimatorMapShrunk()),
+                    onTap: () => ResourceManager().addMove(objectId: 1, keyId: 6),
                     icon: Icons.people,
                     color: Colors.purple[700],
                     size: 50,

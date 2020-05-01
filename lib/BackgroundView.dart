@@ -4,43 +4,45 @@ import 'dart:math';
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/DragEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/DragState.dart';
-import 'package:diplwmatikh_map_test/bloc/ObjDisplayEvent.dart';
-import 'package:diplwmatikh_map_test/bloc/ObjDisplayState.dart';
+import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui' as ui;
 
-import 'bloc/ObjDisplayBloc.dart';
+import 'ScoreView.dart';
+import 'bloc/BackgroundDisplayBloc.dart';
 
-class ObjectView extends StatefulWidget {
-  final Bloc<ObjDisplayEvent,ObjDisplayState> bloc;
-  ObjectView(this.bloc);
+class BackgroundView extends StatefulWidget {
+  final Bloc<BackgroundDisplayEvent,BackgroundDisplayState> bloc;
+  BackgroundView(this.bloc);
 
   @override
-  _ObjectViewState createState() => _ObjectViewState();
+  _BackgroundViewState createState() => _BackgroundViewState();
 }
 
-class _ObjectViewState extends State<ObjectView> {
+class _BackgroundViewState extends State<BackgroundView> {
   @override
   Widget build(BuildContext context) {
 
-    return BlocBuilder<ObjDisplayBloc,ObjDisplayState>(
+    return BlocBuilder<BackgroundDisplayBloc,BackgroundDisplayState>(
       bloc: widget.bloc,
       builder: (context, state) {
 
+        if ((state is BackgroundDisplayBuildInProgress)){
 
-
-        if (!(state is ObjDisplayBuilt)){
-
-          return Container(decoration: BoxDecoration(gradient: LinearGradient(begin:Alignment.topCenter ,end:Alignment.bottomCenter,colors:[Colors.blue[700],Colors.purple[600]])),
+          return Container(decoration: BoxDecoration(gradient: LinearGradient(begin:Alignment.topCenter ,end:Alignment.bottomCenter,colors:[Colors.blue[900],Colors.purple[600]])),
             child: Center(child: CircularProgressIndicator(),),);
         }
+
+        if (state is ScoreDisplayBuilt){
+          return ScoreView();
+        }
+        
         Image image = state.props[2] ;
         Completer<ui.Image> completer = new Completer<ui.Image>();
         image.image.resolve(new ImageConfiguration()).addListener(ImageStreamListener((info,_){
-
           completer.complete(info.image);
-
         }));
 
         return Container(
@@ -157,19 +159,19 @@ class _ObjectViewState extends State<ObjectView> {
                             child:  DragTarget<String>(
                               onWillAccept: (_)=>true,
                               onAccept: (keyId){
-                                if ( BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragEmpty)
-                                BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].add(DragCommitted(keyId: keyId));
+                                if ( BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragEmpty)
+                                BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].add(DragCommitted(keyId: keyId));
                               },
 
                               builder: (context, candidates, rejected) {
-                                if (candidates.length!=0 && BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragEmpty){
+                                if (candidates.length!=0 && BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragEmpty){
                                   return Container(
                                     decoration: BoxDecoration(color: Colors.black12,borderRadius: BorderRadius.circular(18),border: Border.all(color: Colors.white,width: 2),),
                                     height: MediaQuery.of(context).size.height/4.2,
                                     width: MediaQuery.of(context).size.width * 0.264,
                                   );
                                 }
-                                if (BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragRequestInProgress){
+                                if (BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragRequestInProgress){
                                   return Container(
                                     height: MediaQuery.of(context).size.height/4.2,
                                     width: MediaQuery.of(context).size.width * 0.264,
@@ -180,12 +182,12 @@ class _ObjectViewState extends State<ObjectView> {
                                     ),
                                   );
                                 }
-                                if (BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state is DragFull){
+                                if (BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragFull){
                                   return Container(
                                     height: MediaQuery.of(context).size.height/4.2,
                                     width: MediaQuery.of(context).size.width * 0.264,
                                     color: Color.fromARGB(50, 235, 235, 228),
-                                    child: BlocProvider.of<ObjDisplayBloc>(context).dragBlocList[i].state.props[0],
+                                    child: BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state.props[0],
                                   );
                                 }
                                 return Container(
