@@ -33,6 +33,8 @@ dependencies:
 
   qrscan:
 
+  firebase_messaging: ^6.0.13
+
   http: 0.12.0+4
 
   path_provider:

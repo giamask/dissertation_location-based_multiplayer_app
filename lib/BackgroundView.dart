@@ -29,14 +29,14 @@ class _BackgroundViewState extends State<BackgroundView> {
       bloc: widget.bloc,
       builder: (context, state) {
 
-        if ((state is BackgroundDisplayBuildInProgress)){
+        if ((state is BackgroundDisplayBuildInProgress) || (state is BackgroundDisplayUninitialized)){
 
           return Container(decoration: BoxDecoration(gradient: LinearGradient(begin:Alignment.topCenter ,end:Alignment.bottomCenter,colors:[Colors.blue[900],Colors.purple[600]])),
             child: Center(child: CircularProgressIndicator(),),);
         }
 
         if (state is ScoreDisplayBuilt){
-          return ScoreView();
+          return ScoreView(state.props[0]);
         }
         
         Image image = state.props[2] ;
