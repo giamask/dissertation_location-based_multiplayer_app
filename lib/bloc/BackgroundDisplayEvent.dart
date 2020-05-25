@@ -25,5 +25,12 @@ class BackgroundDisplayChangedToScore extends BackgroundDisplayEvent{
   List<Object> get props=>[];
 }
 
+class BackgroundDisplayBecameOutdated extends BackgroundDisplayEvent{
+  final String keyId;
+  BackgroundDisplayBecameOutdated(this.keyId);
+  @override
+  List<Object> get props=>[keyId];
+}
+
 
 

@@ -23,12 +23,13 @@ class ObjectDisplayBuilt extends BackgroundDisplayState{
   final String title;
   final String desc;
   final Image image;
+  final int objectId;
 
 
-  ObjectDisplayBuilt(this.title, this.desc, this.image);
+  ObjectDisplayBuilt(this.title, this.desc, this.image,this.objectId,);
 
   @override
-  List<Object> get props =>[title,desc,image];
+  List<Object> get props =>[title,desc,image,objectId];
 
 }
 

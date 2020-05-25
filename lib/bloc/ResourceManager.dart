@@ -1,3 +1,7 @@
+import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import 'package:path_provider/path_provider.dart';
@@ -5,6 +9,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:meta/meta.dart';
+
+import '../GameState.dart';
 /*
 Για την χρήση αυτής της κλάσης χρειάζεται ο ορισμός ενός server (hardcoded σε local host) και η χρήση συγκεκριμένου formatting στα αρχεία. Συγκεκριμένα:
 asset_registry.json που να περιέχει το version (int).
@@ -18,18 +24,40 @@ enum Status{
 }
 
 class ResourceManager{
+
+
+
+
   // Singleton
   static final ResourceManager _resourceManager= ResourceManager._internal();
+
   factory ResourceManager(){
     return _resourceManager;
   }
   ResourceManager._internal(){}
 
+  FirebaseMessaging _firebaseMessaging ;
   Status status=Status.none;
+  BackgroundDisplayBloc backgroundDisplayBloc;
+  GameState _gameState;
   //Initialization
-  Future<void> init() async{
+  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc) async{
+    //firebase init
+    _firebaseMessaging =FirebaseMessaging()..configure(
+      onMessage: (message) async {_onFirebaseMessage(message);},
+    );
+    _firebaseMessaging.requestNotificationPermissions();
+//    _firebaseMessaging.unsubscribeFromTopic("session1");
+    _firebaseMessaging.subscribeToTopic("session1");
+
+
+    //BackgroundDisplayBloc init
+    if (this.backgroundDisplayBloc!=null) this.backgroundDisplayBloc.close();
+    this.backgroundDisplayBloc=backgroundDisplayBloc;
+
+    //assetRegistry init
     int version = await _recoverVersionNumber();
-    http.Response response= await  _getRequest("/init/$version");
+    http.Response response= await  _getRequest("/init/1?version=$version");
     if (response.statusCode!=HttpStatus.ok){
       status=Status.error;
       return;
@@ -37,6 +65,10 @@ class ResourceManager{
     await createAssetDirectory();
     if(!(response.body.contains("confirm"))) _replaceAssetRegistry(response.body);
     status = Status.initialized;
+
+    //gameState init
+    _gameState = GameState(json.decode(await retrieveAssetRegistry()));
+
   }
 
   Future<String> retrieveAssetRegistry() async{
@@ -50,17 +82,20 @@ class ResourceManager{
     }
   }
 
-  Future<String> addMove({@required int objectId, @required int keyId}) async{
-    final String extension="/move?objectId=$objectId&keyId=$keyId&userId=user1@gmail.com&sessionId=1";
+  Future<String> addMove({@required int objectId, @required int keyId, @required String type}) async{
+
+    String extension="/move?objectId=${objectId.toString()}&userId=1&sessionId=1&type=$type";
+
+    extension += "&keyId=${(type!="scan")?keyId:"null"}";
+
     http.Response response= await _getRequest(extension);
 
-
+    print(response.statusCode);
     Map responseJson = json.decode(response.body);
     bool needSync = true;
     print(responseJson["outcome"]);
     if (responseJson["outcome"]!="invalid move"){
       //TODO update app-side counter
-      print(responseJson["realMoveNo"].runtimeType);
       if (responseJson["realMoveNo"] == 55) needSync=false;//TODO app-side move counter
     }
     if (needSync) getPastMoves();
@@ -96,7 +131,8 @@ class ResourceManager{
 
   //send post request
   Future<http.Response> _getRequest(String extension) async {
-    String url = 'http://192.168.2.2:8888'; //server hardcode here
+//    String url = 'http://192.168.2.2:8888'; //server hardcode here
+    String url = 'http://hci.ece.upatras.gr:8888'; //server hardcode here
 
     http.Response response = await http
         .get(url + extension);
@@ -138,11 +174,26 @@ class ResourceManager{
   Future<void> createAssetDirectory() async{
     final path=await _localPath;
     Directory(path +"/assets").create();
+
   }
 
+  //Firebase Message Receiver
+  void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{
+//    TODO confirm session number
+    Map<String,dynamic> body = json.decode(messageReceived['data']['body']);
+    if (messageReceived['data']['title']=="Move"){
+      if (body['type']=="match"){
+        bool response = _gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString());
+        if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body["keyId"].toString()));
+      }
+    }
+  }
 
-
-
+  List<dynamic> readFromGameState({@required objectId}){
+    List<dynamic> matches = _gameState.read(objectId: objectId);
+  //  matches.sort((a,b)=>int.parse(a.keyId).compareTo(int.parse(b.keyId)));
+    return matches;
+  }
 
 
 }

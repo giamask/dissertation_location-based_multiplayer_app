@@ -90,8 +90,6 @@ class PopUp extends StatelessWidget {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-
-
               return Dialog(
                 child: Container(child: PhotoView(tightMode:true,maxScale: 2.0,initialScale:0.55, minScale: 0.55,imageProvider: image.image)),
                 backgroundColor: Colors.transparent,

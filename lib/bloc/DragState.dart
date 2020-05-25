@@ -26,11 +26,11 @@ class DragIndicator extends DragState{
 }
 
 class DragRequestInProgress extends DragState{
-
-  DragRequestInProgress();
+  final int keyId;
+  DragRequestInProgress({this.keyId});
 
   @override
-  List<Object> get props =>[];
+  List<Object> get props =>[keyId];
 
 }
 

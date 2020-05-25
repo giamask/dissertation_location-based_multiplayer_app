@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/DragState.dart';
 import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'DragEvent.dart';
 import 'DragState.dart';
 
 class DragBloc extends Bloc<DragEvent,DragState>{
-
+  final String objectId;
+  DragBloc(this.objectId);
 
   @override
   DragState get initialState =>  DragEmpty();
@@ -16,19 +18,8 @@ class DragBloc extends Bloc<DragEvent,DragState>{
   @override
   Stream<DragState> mapEventToState(DragEvent event) async*{
     if (event is DragCommitted){
-      yield DragRequestInProgress();
-      //make request
-      // wait for response
-      String response = "positive";
-      if (response=="positive"){
-        this.add(DragResponsePositive(keyId: event.keyId));
-      }else if (response == "timeout"){
-        this.add(DragResponseTimeout());
-      }
-      else{
-        this.add(DragResponseNegative());
-      }
-      //add response as event
+      ResourceManager().addMove(objectId: int.parse(objectId), keyId: int.parse(event.props[0]), type: "match");
+      yield DragRequestInProgress(keyId: int.parse(event.props[0]));
 
     }else if (event is DragResponseNegative){
       //logic

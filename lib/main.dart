@@ -5,6 +5,8 @@ import 'package:diplwmatikh_map_test/BackgroundView.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/InitEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:diplwmatikh_map_test/CustomFloatingButton.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +21,10 @@ import 'bloc/AnimatorBloc.dart';
 import 'bloc/DialogState.dart';
 import 'bloc/InitState.dart';
 import 'bloc/BackgroundDisplayBloc.dart';
+import 'bloc/MenuBloc.dart';
 import 'bloc/ResourceManager.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 void main() => runApp(MyApp());
 
@@ -30,16 +35,19 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Google Maps Demo',
         theme: Theme.of(context).copyWith(accentColor: Colors.black),
         home: MultiBlocProvider(providers: [
-          BlocProvider<InitBloc>(
-            create: (BuildContext context) => InitBloc(),
-          ),
           BlocProvider<AnimatorBloc>(
             create: (BuildContext context) => AnimatorBloc(),
           ),
           BlocProvider<BackgroundDisplayBloc>(
             create: (BuildContext context) => BackgroundDisplayBloc(),
+          ),
+          BlocProvider<InitBloc>(
+            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context)),
           )
-        ], child: MainWidget()));
+        ], child: BlocProvider(
+              create: (BuildContext context)=> MenuBloc(BlocProvider.of<AnimatorBloc>(context)),
+              child: MainWidget(),
+        )));
   }
 }
 
@@ -76,6 +84,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
     );
     shrinkExpandAnimation = Tween(begin: 0.0, end: 0.8)
         .animate(BlocProvider.of<AnimatorBloc>(context).animationController);
+
   }
 
   @override
@@ -192,27 +201,6 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
           Positioned(
               top: MediaQuery.of(context).size.height * 0.758,
               child: KeyList()),
-          AnimatedPositioned(
-            right: 18,
-            top: cfbm_opening ? 83 : 43,
-            duration: Duration(milliseconds: 160),
-            onEnd: () {
-              if (cfbm_opening) {
-                cfbm_open = true;
-                setState(() {});
-              }
-            },
-            child: CustomFloatingButton(
-                onTap: () {
-                  cfbm_opening = !cfbm_opening;
-                  if (cfbm_open) cfbm_open = false;
-
-                  setState(() {});
-                },
-                icon: Icons.category,
-                color: cfbm_open ? Colors.grey[600] : Colors.blue[900],
-                size: 40),
-          ),
           BlocListener(
               bloc: BlocProvider.of<InitBloc>(context).dialogBloc,
               listener: (context, state) {
@@ -260,32 +248,68 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
 
               },
               child: Container()),
-          cfbm_open
-              ? Positioned(
+          BlocBuilder(
+            bloc:BlocProvider.of<MenuBloc>(context),
+            builder: (context,state){
+              if (!(state is MenuHidden)) return AnimatedPositioned(
+                right: 18,
+                top: (state is MenuOpening || state is MenuOpened) ? 83 : 43,
+                duration: Duration(milliseconds: 160),
+                onEnd: () => BlocProvider.of<MenuBloc>(context).add(MenuAnimationCompleted()),
+                child: CustomFloatingButton(
+                    onTap: () {
+                      if (state is MenuOpened) BlocProvider.of<MenuBloc>(context).add(MenuClose());
+                      if (state is MenuClosed) BlocProvider.of<MenuBloc>(context).add(MenuOpen());
+
+                    },
+                    icon: Icons.category,
+                    color: cfbm_open ? Colors.grey[600] : Colors.blue[900],
+                    size: 40),
+              );
+              return Container();
+            }
+          ),
+          BlocBuilder(
+            bloc:BlocProvider.of<MenuBloc>(context),
+            builder: (context,state){
+              if (state is MenuOpened){
+                return Positioned(
                   top: 30,
                   right: 30,
                   child: CustomFloatingButton(
-                    onTap:(){
-                      BlocProvider.of<BackgroundDisplayBloc>(context).add(BackgroundDisplayChangedToScore());
-                      BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapShrunk());
-                    },
+                      onTap:(){
+                        BlocProvider.of<BackgroundDisplayBloc>(context).add(BackgroundDisplayChangedToScore());
+                        BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapShrunk());
+                      },
                       icon: Icons.score, color: Colors.purple[700], size: 50),
-                )
-              : Container(),
-          cfbm_open
-              ? Positioned(
+                );
+              }
+              return Container();
+            },
+          ),
+          BlocBuilder(
+            bloc:BlocProvider.of<MenuBloc>(context),
+            builder: (context,state){
+              if (state is MenuOpened){
+                return Positioned(
                   top: 78,
                   right: 65,
                   child: CustomFloatingButton(
-                    onTap: () => ResourceManager().addMove(objectId: 1, keyId: 6),
+                    onTap: () {},
                     icon: Icons.people,
                     color: Colors.purple[700],
                     size: 50,
                   ),
-                )
-              : Container(),
-          cfbm_open
-              ? Positioned(
+                );
+              }
+              return Container();
+            },
+          ),
+          BlocBuilder(
+            bloc:BlocProvider.of<MenuBloc>(context),
+            builder: (context,state){
+              if (state is MenuOpened){
+                return Positioned(
                   top: 125,
                   right: 30,
                   child: CustomFloatingButton(
@@ -294,8 +318,11 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     size: 50,
                     onTap: qrScan,
                   ),
-                )
-              : Container(),
+                );
+              }
+              return Container();
+            },
+          ),
         ],
       );
     }));

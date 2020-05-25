@@ -156,22 +156,32 @@ class _BackgroundViewState extends State<BackgroundView> {
                             padding:  EdgeInsets.only(left:MediaQuery.of(context).size.width * 0.051, top: 36, bottom: 36),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(18),
-                            child:  DragTarget<String>(
-                              onWillAccept: (_)=>true,
-                              onAccept: (keyId){
-                                if ( BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragEmpty)
-                                BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].add(DragCommitted(keyId: keyId));
-                              },
-
-                              builder: (context, candidates, rejected) {
-                                if (candidates.length!=0 && BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragEmpty){
-                                  return Container(
-                                    decoration: BoxDecoration(color: Colors.black12,borderRadius: BorderRadius.circular(18),border: Border.all(color: Colors.white,width: 2),),
-                                    height: MediaQuery.of(context).size.height/4.2,
-                                    width: MediaQuery.of(context).size.width * 0.264,
+                            child:  BlocBuilder(
+                              bloc:BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i],
+                              builder:(context,state){
+                                if (state is DragEmpty){
+                                  return DragTarget<String>(
+                                    onWillAccept: (_)=>true,
+                                    onAccept:(keyId){
+                                      BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].add(DragCommitted(keyId: keyId));
+                                    },
+                                    builder: (context,candidates,rejected){
+                                      if (candidates.length!=0){
+                                        return Container(
+                                          decoration: BoxDecoration(color: Colors.black12,borderRadius: BorderRadius.circular(18),border: Border.all(color: Colors.white,width: 2),),
+                                          height: MediaQuery.of(context).size.height/4.2,
+                                          width: MediaQuery.of(context).size.width * 0.264,
+                                        );
+                                      }
+                                      return Container(
+                                        height: MediaQuery.of(context).size.height/4.2,
+                                        width: MediaQuery.of(context).size.width * 0.264,
+                                        color: Colors.black12,
+                                      );
+                                    },
                                   );
                                 }
-                                if (BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragRequestInProgress){
+                                if (state is DragRequestInProgress){
                                   return Container(
                                     height: MediaQuery.of(context).size.height/4.2,
                                     width: MediaQuery.of(context).size.width * 0.264,
@@ -182,7 +192,7 @@ class _BackgroundViewState extends State<BackgroundView> {
                                     ),
                                   );
                                 }
-                                if (BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state is DragFull){
+                                if (state is DragFull){
                                   return Container(
                                     height: MediaQuery.of(context).size.height/4.2,
                                     width: MediaQuery.of(context).size.width * 0.264,
@@ -190,12 +200,8 @@ class _BackgroundViewState extends State<BackgroundView> {
                                     child: BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].state.props[0],
                                   );
                                 }
-                                return Container(
-                                      height: MediaQuery.of(context).size.height/4.2,
-                                      width: MediaQuery.of(context).size.width * 0.264,
-                                      color: Colors.black12,
-                                );
-                              }
+                                return Container();
+                              },
                             ),
                           ),
                         )
