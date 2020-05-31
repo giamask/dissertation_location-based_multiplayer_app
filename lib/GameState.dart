@@ -13,10 +13,10 @@ class GameState {
     });
   }
 
-  bool insert({@required String objectId, @required String keyId,@required String matchmaker}){
+  bool insert({@required String objectId, @required String keyId,@required String matchmaker,int position}){
     List<dynamic> matchList = matchStatus[objectId];
     if (matchList.any((element)=>(element.keyId==keyId))) return false;
-    matchList.add(KeyMatch(keyId,matchmaker));
+    matchList.add(KeyMatch(keyId,matchmaker,position: position));
     return true;
   }
 
@@ -44,8 +44,9 @@ class KeyMatch {
 
   final String _keyId;
   final String _matchmaker;
+  final int position;
 
-  KeyMatch(this._keyId, this._matchmaker);
+  KeyMatch(this._keyId, this._matchmaker,{this.position});
 
   String get keyId => _keyId;
   String get matchmaker => _matchmaker;

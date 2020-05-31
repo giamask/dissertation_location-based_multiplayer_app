@@ -163,7 +163,7 @@ class _BackgroundViewState extends State<BackgroundView> {
                                   return DragTarget<String>(
                                     onWillAccept: (_)=>true,
                                     onAccept:(keyId){
-                                      BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].add(DragCommitted(keyId: keyId));
+                                      BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].add(DragCommitted(keyId: keyId,position: i));
                                     },
                                     builder: (context,candidates,rejected){
                                       if (candidates.length!=0){

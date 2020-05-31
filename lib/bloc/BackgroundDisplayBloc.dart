@@ -59,27 +59,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     }
     if (event is BackgroundDisplayBecameOutdated) {
       if (state is ObjectDisplayBuilt) {
-
-        List<dynamic> props = state.props;
-        for (int i = 0; i < slots; i++) {
-          if (dragBlocList[i].state is DragRequestInProgress &&
-              dragBlocList[i].state.props[0].toString() == event.props[0].toString()) {
-            dragBlocList[i].add(DragResponsePositive(keyId: event.props[0]));
-            return;
-          }
-        }
-        for (int i = 0; i < slots; i++) {
-          if (dragBlocList[i].state is DragEmpty) {
-            dragBlocList[i].add(DragResponsePositive(keyId: event.props[0]));
-            return;
-          }
-        }
-        for (int i = 0; i < slots; i++) {
-          if (!(dragBlocList[i].state is DragFull)) {
-            dragBlocList[i].add(DragResponsePositive(keyId: event.props[0]));
-            break;
-          }
-        }
+          refreshDragList(state.props[3].toString());
       }
     }
   }
@@ -92,9 +72,11 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
   }
 
   void refreshDragList(String id){
+    print("here" + id);
     List<dynamic> keyMatch = ResourceManager().readFromGameState(objectId: id);
     for (int i=0;i<keyMatch.length;i++){
-      dragBlocList[i].add(DragResponsePositive(keyId: (keyMatch[i] as KeyMatch).keyId));
+      KeyMatch currKey = keyMatch[i] as KeyMatch;
+      dragBlocList[currKey.position].add(DragResponsePositive(keyId: currKey.keyId));
     }
   }
 }

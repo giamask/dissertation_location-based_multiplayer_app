@@ -48,7 +48,7 @@ class ResourceManager{
     );
     _firebaseMessaging.requestNotificationPermissions();
 //    _firebaseMessaging.unsubscribeFromTopic("session1");
-    _firebaseMessaging.subscribeToTopic("session1");
+    _firebaseMessaging.subscribeToTopic("testsession2");
 
 
     //BackgroundDisplayBloc init
@@ -82,10 +82,11 @@ class ResourceManager{
     }
   }
 
-  Future<String> addMove({@required int objectId, @required int keyId, @required String type}) async{
-
+  Future<String> addMove({@required int objectId, @required int keyId, @required String type, int position}) async{
+    print(position.toString() + "s");
     String extension="/move?objectId=${objectId.toString()}&userId=1&sessionId=1&type=$type";
     extension += "&keyId=${(type!="scan")?keyId:"null"}";
+    if (position!=null) extension +="&position=$position";
 
     http.Response response= await _getRequest(extension);
     Map responseJson = json.decode(response.body);
@@ -187,7 +188,7 @@ class ResourceManager{
   }
 
   void displayAwareInsert(Map<String, dynamic> body) {
-    bool response = _gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString());
+    bool response = _gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString(),position: body["position"]);
     if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body["keyId"].toString()));
   }
 

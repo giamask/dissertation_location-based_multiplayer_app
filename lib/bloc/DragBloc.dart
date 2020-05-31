@@ -18,7 +18,7 @@ class DragBloc extends Bloc<DragEvent,DragState>{
   @override
   Stream<DragState> mapEventToState(DragEvent event) async*{
     if (event is DragCommitted){
-      ResourceManager().addMove(objectId: int.parse(objectId), keyId: int.parse(event.props[0]), type: "match");
+      ResourceManager().addMove(objectId: int.parse(objectId), keyId: int.parse(event.props[0]), type: "match", position: event.props[1]);
       yield DragRequestInProgress(keyId: int.parse(event.props[0]));
 
     }else if (event is DragResponseNegative){

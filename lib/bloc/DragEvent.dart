@@ -11,9 +11,10 @@ abstract class DragEvent extends Equatable {
 
 class DragCommitted extends DragEvent{
   final String keyId;
-  DragCommitted({@required this.keyId});
+  final int position;
+  DragCommitted({@required this.keyId,@required this.position});
   @override
-  List<Object> get props=>[keyId];
+  List<Object> get props=>[keyId,position];
 }
 
 class DragResponsePositive extends DragEvent{
