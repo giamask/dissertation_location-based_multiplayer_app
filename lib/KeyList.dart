@@ -26,8 +26,8 @@ class _KeyListState extends State<KeyList> {
       decoration: BoxDecoration(
           color: Colors.black45,
           borderRadius: BorderRadius.only(
-              topLeft: Radius.elliptical(30, 20),
-              topRight: Radius.elliptical(30, 20))),
+              topLeft: Radius.elliptical(40, 20),
+              topRight: Radius.elliptical(40, 20))),
       child: Stack(
         children: <Widget>[
           Positioned(

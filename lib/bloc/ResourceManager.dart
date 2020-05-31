@@ -36,10 +36,11 @@ class ResourceManager{
   }
   ResourceManager._internal(){}
 
-  FirebaseMessaging _firebaseMessaging ;
+  FirebaseMessaging _firebaseMessaging;
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
   GameState _gameState;
+  int userId=1;
   //Initialization
   Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc) async{
     //firebase init
@@ -48,7 +49,7 @@ class ResourceManager{
     );
     _firebaseMessaging.requestNotificationPermissions();
 //    _firebaseMessaging.unsubscribeFromTopic("session1");
-    _firebaseMessaging.subscribeToTopic("testsession2");
+    _firebaseMessaging.subscribeToTopic("session1");
 
 
     //BackgroundDisplayBloc init
@@ -179,17 +180,26 @@ class ResourceManager{
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{
 //    TODO confirm session number
     Map<String,dynamic> body = json.decode(messageReceived['data']['body']);
-    updateCounter(body);
+    updateCounter(body); // TODO call this and return if there has been a sync error
+    // TODO count points if self
     if (messageReceived['data']['title']=="Move"){
       if (body['type']=="match"){
         displayAwareInsert(body);
       }
+      else if (body['type']=="unmatch") {
+        if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId'] == backgroundDisplayBloc.state.props[3]){
+          //version - specific code
+          if (body['userId']==userId.toString()) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==userId,false));
+        }
+      }
     }
+
   }
 
   void displayAwareInsert(Map<String, dynamic> body) {
+    //version - specific code
     bool response = _gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString(),position: body["position"]);
-    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body["keyId"].toString()));
+    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==userId,true));
   }
 
   void updateCounter(Map<String,dynamic> body){

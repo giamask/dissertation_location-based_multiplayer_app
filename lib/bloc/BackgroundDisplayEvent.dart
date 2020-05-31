@@ -26,10 +26,13 @@ class BackgroundDisplayChangedToScore extends BackgroundDisplayEvent{
 }
 
 class BackgroundDisplayBecameOutdated extends BackgroundDisplayEvent{
+  final int position;
+  final bool triggeredByFriendlyUser;
+  final bool correctPlacement;
   final String keyId;
-  BackgroundDisplayBecameOutdated(this.keyId);
+  BackgroundDisplayBecameOutdated(this.keyId,this.position,this.triggeredByFriendlyUser,this.correctPlacement);
   @override
-  List<Object> get props=>[keyId];
+  List<Object> get props=>[position,triggeredByFriendlyUser,correctPlacement];
 }
 
 

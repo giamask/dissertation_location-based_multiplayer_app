@@ -37,7 +37,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
 
 
       dropDragList(slots, id);
-      refreshDragList(id);
+      fillDragList(id);
 
       Image image = await ResourceManager().retrieveImage(
           object["ObjectImage"]);
@@ -59,7 +59,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     }
     if (event is BackgroundDisplayBecameOutdated) {
       if (state is ObjectDisplayBuilt) {
-          refreshDragList(state.props[3].toString());
+          refreshDragList(event.correctPlacement,event.position,event.keyId);
       }
     }
   }
@@ -71,13 +71,16 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
 
   }
 
-  void refreshDragList(String id){
-    print("here" + id);
+  void fillDragList(String id){
     List<dynamic> keyMatch = ResourceManager().readFromGameState(objectId: id);
     for (int i=0;i<keyMatch.length;i++){
       KeyMatch currKey = keyMatch[i] as KeyMatch;
       dragBlocList[currKey.position].add(DragResponsePositive(keyId: currKey.keyId));
     }
+  }
+
+  void refreshDragList(bool correctPlacement, int position,String keyId){
+    dragBlocList[position].add(correctPlacement?DragResponsePositive(keyId:keyId):DragResponseNegative());
   }
 }
 

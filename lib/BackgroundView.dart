@@ -143,7 +143,6 @@ class _BackgroundViewState extends State<BackgroundView> {
                     );
                   }
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(top:28.0),
                   child: Container(
