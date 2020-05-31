@@ -3,20 +3,20 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:meta/meta.dart';
-
 import '../GameState.dart';
+
 /*
 Για την χρήση αυτής της κλάσης χρειάζεται ο ορισμός ενός server (hardcoded σε local host) και η χρήση συγκεκριμένου formatting στα αρχεία. Συγκεκριμένα:
 asset_registry.json που να περιέχει το version (int).
 assets/$imageName.jpg
 Επισης προσοχή στα paths του server.
 */
+
 enum Status{
   none,
   initialized,
@@ -85,27 +85,23 @@ class ResourceManager{
   Future<String> addMove({@required int objectId, @required int keyId, @required String type}) async{
 
     String extension="/move?objectId=${objectId.toString()}&userId=1&sessionId=1&type=$type";
-
     extension += "&keyId=${(type!="scan")?keyId:"null"}";
 
     http.Response response= await _getRequest(extension);
-
-    print(response.statusCode);
     Map responseJson = json.decode(response.body);
     bool needSync = true;
     print(responseJson["outcome"]);
-    if (responseJson["outcome"]!="invalid move"){
-      //TODO update app-side counter
-      if (responseJson["realMoveNo"] == 55) needSync=false;//TODO app-side move counter
-    }
+    if (responseJson["outcome"].contains("valid move"))needSync=false;
     if (needSync) getPastMoves();
+
     return response.body;
   }
 
   void getPastMoves() async{
-    //TODO get app-side counter
     http.Response response= await _getRequest("/past_moves/");
-    //TODO add moves to local counter
+    print(response.body);
+    print(response.body.runtimeType);
+
   }
 
   //ImageRetrieval (example: 1.jpg)
@@ -177,21 +173,34 @@ class ResourceManager{
 
   }
 
+
   //Firebase Message Receiver
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{
 //    TODO confirm session number
     Map<String,dynamic> body = json.decode(messageReceived['data']['body']);
+    updateCounter(body);
     if (messageReceived['data']['title']=="Move"){
       if (body['type']=="match"){
-        bool response = _gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString());
-        if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body["keyId"].toString()));
+        displayAwareInsert(body);
       }
     }
   }
 
+  void displayAwareInsert(Map<String, dynamic> body) {
+    bool response = _gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString());
+    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body["keyId"].toString()));
+  }
+
+  void updateCounter(Map<String,dynamic> body){
+    if (body['lastMoveId']<=_gameState.currentMoveId){
+      _gameState.currentMoveId=body['currentMoveId'];
+      return;
+    }
+    getPastMoves();
+  }
+
   List<dynamic> readFromGameState({@required objectId}){
     List<dynamic> matches = _gameState.read(objectId: objectId);
-  //  matches.sort((a,b)=>int.parse(a.keyId).compareTo(int.parse(b.keyId)));
     return matches;
   }
 

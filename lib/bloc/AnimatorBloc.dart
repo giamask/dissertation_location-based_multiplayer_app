@@ -11,13 +11,13 @@ class AnimatorBloc extends Bloc<AnimatorEvent,AnimatorState> {
   
   @override
   Stream<AnimatorState> mapEventToState(AnimatorEvent event) async*{
-    if (event is AnimatorMapShrunk){
+    if (event is AnimatorMapShrunk && state is MapView){
 
           animationController.forward();
 
       yield(ObjectView());
     }
-    else if(event is AnimatorMapExpanded){
+    else if(event is AnimatorMapExpanded && state is ObjectView ){
       if(animationController.isCompleted){
         animationController.reverse();
       }

@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 class GameState {
   Map<String,dynamic> objectsJson;
   Map matchStatus={};
-  int lastKnownMoveId=0;
+  int currentMoveId=0;
 
 
   GameState(this.objectsJson){
