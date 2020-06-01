@@ -39,6 +39,7 @@ class _KeyListState extends State<KeyList> {
                   "assets/horizontal_lines3.png",
                   width: 35,
                   height: 6,
+                  color: Colors.white38,
                 ),
               ),
             ),

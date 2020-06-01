@@ -11,6 +11,7 @@ import 'DialogState.dart';
 class DialogBloc extends Bloc<DialogEvent,DialogState>{
 
 
+
   @override
   DialogState get initialState => Ready();
 

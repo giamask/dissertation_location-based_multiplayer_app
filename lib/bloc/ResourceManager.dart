@@ -49,7 +49,7 @@ class ResourceManager{
     );
     _firebaseMessaging.requestNotificationPermissions();
 //    _firebaseMessaging.unsubscribeFromTopic("session1");
-    _firebaseMessaging.subscribeToTopic("session1");
+    _firebaseMessaging.subscribeToTopic("session2");
 
 
     //BackgroundDisplayBloc init
@@ -189,7 +189,7 @@ class ResourceManager{
       else if (body['type']=="unmatch") {
         if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId'] == backgroundDisplayBloc.state.props[3]){
           //version - specific code
-          if (body['userId']==userId.toString()) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==userId,false));
+          if (body['userId']==userId.toString()) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==userId.toString(),false));
         }
       }
     }
@@ -199,7 +199,7 @@ class ResourceManager{
   void displayAwareInsert(Map<String, dynamic> body) {
     //version - specific code
     bool response = _gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString(),position: body["position"]);
-    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==userId,true));
+    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==userId.toString(),true));
   }
 
   void updateCounter(Map<String,dynamic> body){

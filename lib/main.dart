@@ -7,6 +7,7 @@ import 'package:diplwmatikh_map_test/bloc/InitEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:diplwmatikh_map_test/CustomFloatingButton.dart';
 import 'package:flutter/material.dart';
@@ -213,6 +214,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   AnimatorBloc animatorBloc = BlocProvider.of<AnimatorBloc>(context);
                   if (state is Ready) {
                     showGeneralDialog(
+                      barrierColor: Colors.black26,
                         context: context,
                         barrierLabel: "Label",
                         transitionDuration: Duration(milliseconds: 100),
@@ -286,7 +288,23 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                           BlocProvider.of<BackgroundDisplayBloc>(context).add(BackgroundDisplayChangedToScore());
                           BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapShrunk());
                         },
-                        icon: Icons.score, color: Colors.purple[700], size: 50),
+                        child: Stack(
+                          children: <Widget>[
+                            Icon(Icons.score,color:Colors.white,size: 28,),
+                            Positioned(
+                              top:5,
+                              left:6,
+                              child: Container(
+                                height: 8,
+                                width: 17,
+                                color:Colors.white,
+                                child: Center(child: Text("20",style: TextStyle(fontSize: 9.1,fontWeight: FontWeight.bold,color: Colors.purple[700]),)),
+                              ),
+                            )
+
+                          ],
+                        ),
+                        color: Colors.purple[700], size: 50),
                   );
                 }
                 return Container();

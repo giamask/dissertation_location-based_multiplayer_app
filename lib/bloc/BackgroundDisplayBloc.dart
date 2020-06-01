@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
+import 'package:diplwmatikh_map_test/bloc/AnimationEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
 import 'package:diplwmatikh_map_test/bloc/DragEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
 import 'package:flutter/material.dart';
 import '../GameState.dart';
+import 'AnimationBloc.dart';
 import 'DragBloc.dart';
 import 'BackgroundDisplayEvent.dart';
 import 'BackgroundDisplayState.dart';
@@ -20,6 +22,14 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
 
 
   final List<DragBloc> dragBlocList = [];
+
+  @override
+  Future<void> close() {
+    dragBlocList.forEach((bloc)=>bloc?.close());
+    return super.close();
+  }
+
+
   @override
   BackgroundDisplayState get initialState => BackgroundDisplayUninitialized() ;
 
@@ -35,9 +45,9 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
         return false;
       });
 
-
       dropDragList(slots, id);
       fillDragList(id);
+
 
       Image image = await ResourceManager().retrieveImage(
           object["ObjectImage"]);
@@ -60,6 +70,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     if (event is BackgroundDisplayBecameOutdated) {
       if (state is ObjectDisplayBuilt) {
           refreshDragList(event.correctPlacement,event.position,event.keyId);
+          if (event.triggeredByFriendlyUser) animateChange(event.position,event.correctPlacement);
       }
     }
   }
@@ -81,6 +92,10 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
 
   void refreshDragList(bool correctPlacement, int position,String keyId){
     dragBlocList[position].add(correctPlacement?DragResponsePositive(keyId:keyId):DragResponseNegative());
+  }
+
+  void animateChange(int position, bool correctPlacement){
+    dragBlocList[position].scoreChangeAnimation.add(AnimationStartRequested(correctPlacement,position));
   }
 }
 

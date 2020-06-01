@@ -5,12 +5,22 @@ import 'package:diplwmatikh_map_test/bloc/DragState.dart';
 import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'AnimationBloc.dart';
 import 'DragEvent.dart';
 import 'DragState.dart';
 
 class DragBloc extends Bloc<DragEvent,DragState>{
   final String objectId;
   DragBloc(this.objectId);
+
+  AnimationBloc scoreChangeAnimation = AnimationBloc();
+
+  @override
+  Future<void> close(){
+    scoreChangeAnimation?.close();
+    return super.close();
+  }
+
 
   @override
   DragState get initialState =>  DragEmpty();
