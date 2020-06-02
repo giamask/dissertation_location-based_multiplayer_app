@@ -27,20 +27,6 @@ class BackgroundView extends StatefulWidget {
 class _BackgroundViewState extends State<BackgroundView>
     with SingleTickerProviderStateMixin {
 
-/*  AnimationController animationController;
-  @override
-  void initState() {
-    animationController =
-        AnimationController(vsync: this, duration: Duration(seconds: 1));
-    BlocProvider.of<BackgroundDisplayBloc>(context).scoreChangeAnimation.animationController=animationController;
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    animationController.dispose();
-    super.dispose();
-  }*/
 
   @override
   Widget build(BuildContext context) {

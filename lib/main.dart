@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'KeyList.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
+import 'KeyMenu.dart';
 import 'PopUp.dart';
 import 'package:diplwmatikh_map_test/bloc/InitBloc.dart';
 import 'bloc/AnimatorBloc.dart';
@@ -204,9 +205,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     ],
                   );
                 }),
-            Positioned(
-                top: MediaQuery.of(context).size.height * 0.758,
-                child: KeyList()),
+            KeyMenu(),
             BlocListener(
                 bloc: BlocProvider.of<InitBloc>(context).dialogBloc,
                 listener: (context, state) {
