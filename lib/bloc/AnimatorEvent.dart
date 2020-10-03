@@ -9,5 +9,6 @@ abstract class AnimatorEvent extends Equatable {
 
 class AnimatorMapShrunk extends AnimatorEvent{}
 class AnimatorMapExpanded extends AnimatorEvent{}
+class AnimationCompleted extends AnimatorEvent{}
 
 

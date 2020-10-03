@@ -180,7 +180,8 @@ class ResourceManager{
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{
 //    TODO confirm session number
     Map<String,dynamic> body = json.decode(messageReceived['data']['body']);
-    updateCounter(body); // TODO call this and return if there has been a sync error
+    updateCounter(body);
+    // TODO call this and return if there has been a sync error
     // TODO count points if self
     if (messageReceived['data']['title']=="Move"){
       if (body['type']=="match"){

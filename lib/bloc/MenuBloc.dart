@@ -21,7 +21,7 @@ class MenuBloc extends Bloc<MenuEvent,MenuState>{
       if (state is MapView){
         this.add(MenuShow());
       }
-      else if (state is ObjectView){
+      else{
         this.add(MenuHide());
       }
     });
@@ -33,7 +33,6 @@ class MenuBloc extends Bloc<MenuEvent,MenuState>{
 
   @override
   Stream<MenuState> mapEventToState(MenuEvent event) async*{
-    print(event);
     if (event is MenuOpen) {
       yield MenuOpening();
     }

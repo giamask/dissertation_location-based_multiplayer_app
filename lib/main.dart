@@ -7,6 +7,7 @@ import 'package:diplwmatikh_map_test/bloc/InitEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
+import 'package:draggable_widget/draggable_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:diplwmatikh_map_test/CustomFloatingButton.dart';
@@ -15,10 +16,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
+import 'AnimatedMapBuilder.dart';
 import 'KeyMenu.dart';
 import 'PopUp.dart';
 import 'package:diplwmatikh_map_test/bloc/InitBloc.dart';
 import 'bloc/AnimatorBloc.dart';
+import 'bloc/AnimatorState.dart';
 import 'bloc/DialogState.dart';
 import 'bloc/InitState.dart';
 import 'bloc/BackgroundDisplayBloc.dart';
@@ -73,7 +76,6 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
 
 
   Animation shrinkExpandAnimation;
-
   @override
   void initState() {
     super.initState();
@@ -84,7 +86,11 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
     );
     shrinkExpandAnimation = Tween(begin: 0.0, end: 0.8)
         .animate(BlocProvider.of<AnimatorBloc>(context).animationController);
-
+    BlocProvider.of<AnimatorBloc>(context).animationController.addStatusListener((status) {
+      if (status==AnimationStatus.completed || status==AnimationStatus.dismissed){
+        BlocProvider.of<AnimatorBloc>(context).add(AnimationCompleted());
+      }
+    });
   }
 
   @override
@@ -112,98 +118,28 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
         return Stack(
           children: <Widget>[
             BackgroundView(BlocProvider.of<BackgroundDisplayBloc>(context)),
-            AnimatedBuilder(
-                animation:
-                    BlocProvider.of<AnimatorBloc>(context).animationController,
-                builder: (context, widget) {
-                  Animation animationController = shrinkExpandAnimation;
-                  final double ratio = 1 - animationController.value;
-                  final double doubleRatio =
-                       1 - animationController.value * 1.1;
-                  final double interRatio =
-                      animationController.value > 0.55 ? ratio / 0.45 : 1;
-                  final double doubleInterRatio =
-                      animationController.value > 0.55 ? doubleRatio / 0.4 : 1;
-                  return Stack(
-                    children: <Widget>[
-                      Transform(
-                        alignment: Alignment.lerp(
-                            Alignment.centerRight, Alignment.bottomRight, 0.4),
-                        transform:
-                            Matrix4.diagonal3Values(ratio, doubleRatio, 1.0),
-                        child: Opacity(
-                          opacity: () {
-                            if (animationController.value >= 0.8) {
-                              return 0.0;
-                            } else if (animationController.value >= 0.6) {
-                              return ((0.8 - animationController.value) / 0.2);
-                            }
-                            return 1.0;
-                          }(),
-                          child: GoogleMap(
-                            onCameraIdle: () => (cameraIdle != null
-                                ? cameraIdle.complete()
-                                : null),
-                            markers: state.props[0],
-                            rotateGesturesEnabled: false,
-                            tiltGesturesEnabled: false,
-                            mapType: MapType.normal,
-                            initialCameraPosition: _kGooglePlex,
-                            onMapCreated: (GoogleMapController controller) {
-                              final Completer<GoogleMapController> _controller =
-                                  state.props[1];
-                              _controller.complete(controller);
-                            },
-                            myLocationEnabled: true,
-                            compassEnabled: false,
-                            cameraTargetBounds: CameraTargetBounds(latLngBounds),
-                            //hardcoded limits
-                            minMaxZoomPreference: MinMaxZoomPreference(10, 30),
-                            myLocationButtonEnabled: false,
-                          ),
+            BlocBuilder(
+              bloc:BlocProvider.of<AnimatorBloc>(context),
+              builder: (context,state){
+                  return DraggableWidget(
+                    normalShadow: BoxShadow(color: Colors.transparent),
+                    dragController: BlocProvider.of<AnimatorBloc>(context).dragController,
+                    topMargin: 50,
+                    bottomMargin: 237,
+                    child:Opacity(
+                      opacity: (BlocProvider.of<AnimatorBloc>(context).state is MapView)?0.0:1.0,
+                      child: GestureDetector(
+                        child: Image.asset(
+                          "assets/map_icon.png",
+                          height: 60,
                         ),
+                        onTap: ()=> BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapExpanded()),
                       ),
-                      (animationController.value > 0.55)
-                          ? Container(
-                              child: Transform(
-                                  alignment: Alignment.centerRight,
-                                  transform: Matrix4.diagonal3Values(1.3, 2, 1.0),
-                                  child: Transform(
-                                      alignment: Alignment.lerp(
-                                          Alignment.centerRight,
-                                          Alignment.bottomRight,
-                                          0.3),
-                                      transform: Matrix4.diagonal3Values(
-                                          interRatio, doubleInterRatio, 1.0),
-                                      child: Opacity(
-                                          opacity: () {
-                                            if (animationController.value >=
-                                                0.8) {
-                                              return 1.0;
-                                            } else if (animationController
-                                                    .value >= 0.6) {
-                                              return (1 -
-                                                  (0.8 -
-                                                          animationController
-                                                              .value) /
-                                                      0.2);
-                                            }
-                                            return 0.0;
-                                          }(),
-                                          child: GestureDetector(
-                                            child: Image.asset(
-                                              "assets/map_icon.png",
-                                              height: 150,
-                                            ),
-                                            onTap: ()=> BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapExpanded()),
-                                          )))),
-                              alignment: Alignment.lerp(Alignment.centerRight,
-                                  Alignment.bottomRight, 0.33),
-                            )
-                          : Container()
-                    ],
+                    ),
                   );
-                }),
+              },
+            ),
+            AnimatedMapBuilder(shrinkExpandAnimation: shrinkExpandAnimation, kGooglePlex: _kGooglePlex, latLngBounds: latLngBounds,stateProps: state.props,),
             KeyMenu(),
             BlocListener(
                 bloc: BlocProvider.of<InitBloc>(context).dialogBloc,

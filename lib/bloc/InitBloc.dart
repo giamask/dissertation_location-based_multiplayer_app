@@ -74,7 +74,7 @@ class InitBloc extends Bloc<InitEvent,InitState>{
         LatLng(double.parse(object["ObjectLocation"].split(",")[0]),
             double.parse(object["ObjectLocation"].split(",")[1])),
         18);
-    MainWidgetState.cameraIdle=Completer();
+    MainWidgetState.cameraIdle=new Completer();
     await MainWidgetState.cameraIdle.future;
 
     List<dynamic> keyMatch = ResourceManager().readFromGameState(objectId: object["@ObjectId"]);
@@ -82,7 +82,6 @@ class InitBloc extends Bloc<InitEvent,InitState>{
     int slots = 3;
 
     List<bool> matches = [for (int i=0;i<keyMatch.length;i++) true, for (int i=0;i<slots-keyMatch.length;i++) false];
-
     dialogBloc.add(MarkerTap(id:object["@ObjectId"],name:object["ObjectTitle"],matches: matches,imagePath: object["ObjectImage"]));
 
   }
