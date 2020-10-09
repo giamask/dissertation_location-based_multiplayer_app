@@ -1,10 +1,9 @@
-import 'dart:io';
 import 'dart:ui';
-import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/BackgroundView.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/InitEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
 import 'package:draggable_widget/draggable_widget.dart';
@@ -13,7 +12,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:diplwmatikh_map_test/CustomFloatingButton.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'AnimatedMapBuilder.dart';
@@ -25,9 +23,8 @@ import 'bloc/AnimatorState.dart';
 import 'bloc/DialogState.dart';
 import 'bloc/InitState.dart';
 import 'bloc/BackgroundDisplayBloc.dart';
+import 'bloc/KeyManagerBloc.dart';
 import 'bloc/MenuBloc.dart';
-import 'bloc/ResourceManager.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 void main() => runApp(MyApp());
@@ -45,12 +42,15 @@ class MyApp extends StatelessWidget {
           BlocProvider<BackgroundDisplayBloc>(
             create: (BuildContext context) => BackgroundDisplayBloc(),
           ),
+          BlocProvider<KeyManagerBloc>(
+            create: (BuildContext context) => KeyManagerBloc(),
+          ),
           BlocProvider<InitBloc>(
-            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context)),
+            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context),BlocProvider.of<KeyManagerBloc>(context)),
           ),
           BlocProvider<MenuBloc>(
             create: (BuildContext context)=> MenuBloc(BlocProvider.of<AnimatorBloc>(context)),
-          )
+          ),
         ], child: MainWidget()));
   }
 }
@@ -252,7 +252,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     top: 78,
                     right: 65,
                     child: CustomFloatingButton(
-                      onTap: () {},
+                      onTap: () {BlocProvider.of<KeyManagerBloc>(context).add(KeyManagerKeyMatch("","", 2));},
                       icon: Icons.people,
                       color: Colors.purple[700],
                       size: 50,

@@ -66,6 +66,7 @@ class _AnimatedMapBuilderState extends State<AnimatedMapBuilder> {
                     return 1.0;
                   }(),
                   child: GoogleMap(
+                    zoomControlsEnabled: false,
                     onCameraIdle: () =>
                     (MainWidgetState.cameraIdle != null &&
                         !(MainWidgetState.cameraIdle.isCompleted)
