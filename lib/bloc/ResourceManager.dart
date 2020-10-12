@@ -1,6 +1,7 @@
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
+import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:meta/meta.dart';
 import '../GameState.dart';
+import 'KeyManagerBloc.dart';
 
 /*
 Για την χρήση αυτής της κλάσης χρειάζεται ο ορισμός ενός server (hardcoded σε local host) και η χρήση συγκεκριμένου formatting στα αρχεία. Συγκεκριμένα:
@@ -39,21 +41,28 @@ class ResourceManager{
   FirebaseMessaging _firebaseMessaging;
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
+  KeyManagerBloc keyManagerBloc;
   GameState _gameState;
   int userId=1;
+  int teamId;
+  List teamColor;
+  String teamName;
   //Initialization
-  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc) async{
+  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc) async{
     //firebase init
     _firebaseMessaging =FirebaseMessaging()..configure(
       onMessage: (message) async {_onFirebaseMessage(message);},
     );
     _firebaseMessaging.requestNotificationPermissions();
-//    _firebaseMessaging.unsubscribeFromTopic("session1");
-    _firebaseMessaging.subscribeToTopic("session2");
+    _firebaseMessaging.subscribeToTopic("session3");
 
+//    TODO close them on closing the game instance. Uncommenting might be enough
+    //KeyManagerBloc init
+//    if (this.keyManagerBloc!=null) this.keyManagerBloc.close();
+    this.keyManagerBloc=keyManagerBloc;
 
     //BackgroundDisplayBloc init
-    if (this.backgroundDisplayBloc!=null) this.backgroundDisplayBloc.close();
+//    if (this.backgroundDisplayBloc!=null) this.backgroundDisplayBloc.close();
     this.backgroundDisplayBloc=backgroundDisplayBloc;
 
     //assetRegistry init
@@ -69,7 +78,10 @@ class ResourceManager{
 
     //gameState init
     _gameState = GameState(json.decode(await retrieveAssetRegistry()));
-
+    Map team = (await teamFromUserId(userId.toString()));
+    teamId=team['@TeamId'];
+    teamColor = team['Color'];
+    teamName = team['TeamName'];
   }
 
   Future<String> retrieveAssetRegistry() async{
@@ -84,7 +96,6 @@ class ResourceManager{
   }
 
   Future<String> addMove({@required int objectId, @required int keyId, @required String type, int position}) async{
-    print(position.toString() + "s");
     String extension="/move?objectId=${objectId.toString()}&userId=1&sessionId=1&type=$type";
     extension += "&keyId=${(type!="scan")?keyId:"null"}";
     if (position!=null) extension +="&position=$position";
@@ -92,7 +103,7 @@ class ResourceManager{
     http.Response response= await _getRequest(extension);
     Map responseJson = json.decode(response.body);
     bool needSync = true;
-    print(responseJson["outcome"]);
+
     if (responseJson["outcome"].contains("valid move"))needSync=false;
     if (needSync) getPastMoves();
 
@@ -106,7 +117,18 @@ class ResourceManager{
 
   }
 
-  //ImageRetrieval (example: 1.jpg)
+  Future<List<int>> requestKeys() async {
+    String parameters = "/keys?sessionId=1&userId=1";
+    http.Response response = await _getRequest(parameters);
+    Map responseJson = json.decode(response.body);
+    try {
+
+      return (responseJson['keys'] as List<dynamic>).cast<int>();
+    }
+    catch (e) {print(e);}
+  }
+
+  //ImageRetrieval
   Future<Image> retrieveImage(String imageName) async{
     final String path = await _localPath;
     File imageFile=File("$path/assets/$imageName");
@@ -180,11 +202,13 @@ class ResourceManager{
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{
 //    TODO confirm session number
     Map<String,dynamic> body = json.decode(messageReceived['data']['body']);
-    updateCounter(body); // TODO call this and return if there has been a sync error
+    updateCounter(body);
+    // TODO call this and return if there has been a sync error
     // TODO count points if self
     if (messageReceived['data']['title']=="Move"){
       if (body['type']=="match"){
         displayAwareInsert(body);
+        keyManagerBloc.add(KeyManagerKeyMatch((await teamFromUserId(body["userId"]))['@TeamId'],body["userId"], body['keyId']));
       }
       else if (body['type']=="unmatch") {
         if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId'] == backgroundDisplayBloc.state.props[3]){
@@ -213,6 +237,29 @@ class ResourceManager{
   List<dynamic> readFromGameState({@required objectId}){
     List<dynamic> matches = _gameState.read(objectId: objectId);
     return matches;
+  }
+
+  Future<Map> teamFromUserId(String userId) async{
+    String assetRegistry = await retrieveAssetRegistry();
+    Map assetJSON = jsonDecode(assetRegistry);
+    List teams= assetJSON['joumerka']['Teams'];
+    return teams.firstWhere((element) {
+      List playerIds = element['PlayerIds'];
+      if (playerIds.contains(userId)) return true;
+      return false;
+    });
+  }
+
+  Future<List> getScore() async{
+    String parameters = "/score/1";
+    http.Response response = await _getRequest(parameters);
+    print(response.body);
+
+    try {
+      return (jsonDecode(response.body));
+    }
+    catch (e) {print(e);}
+
   }
 
 

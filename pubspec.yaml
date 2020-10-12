@@ -29,7 +29,7 @@ dependencies:
   bloc:
 
   flutter_bloc:
-  google_maps_flutter:
+  google_maps_flutter: 1.0.2
 
   qrscan:
 
@@ -44,6 +44,10 @@ dependencies:
   permission_handler:
 
   equatable: ^1.1.1
+
+  draggable_widget: 1.0.1
+
+  animations: 1.1.1
 
   photo_view:
 dev_dependencies:

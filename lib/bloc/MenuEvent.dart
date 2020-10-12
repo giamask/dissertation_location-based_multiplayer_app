@@ -9,6 +9,7 @@ abstract class MenuEvent extends Equatable {
 }
 
 class MenuOpen extends MenuEvent{}
+class MenuInitialize extends MenuEvent{}
 class MenuClose extends MenuEvent{}
 class MenuHide extends MenuEvent{}
 class MenuShow extends MenuEvent{}

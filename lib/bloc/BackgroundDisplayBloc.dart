@@ -57,14 +57,16 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     }
     if (event is BackgroundDisplayChangedToScore) {
       yield BackgroundDisplayBuildInProgress();
-      //TODO retrieve and sort
-      List<List> scoreboard = [
-        [Colors.purple, "Team 1", 10],
-        [Colors.black, "Team 2", 5],
-        [Colors.yellow, "Team 3", 1],
-        [Colors.teal, "Team 4", 1],
-        [Colors.orange, "Team 5", 0]
-      ];
+      //TODO rebuild on change
+      List scoreList = await ResourceManager().getScore();
+      Map assetRegistry =  jsonDecode(await ResourceManager().retrieveAssetRegistry());
+      int bonus = assetRegistry["joumerka"]["Score"]["ScoreBonus"];
+      int penalty = assetRegistry["joumerka"]["Score"]["ScorePenalty"];
+      List<List> scoreboard = [];
+      scoreList.forEach((teamElement) {
+        List rgb = teamElement[0].split(",");
+        scoreboard.add([Color.fromRGBO(int.parse(rgb[0]), int.parse(rgb[1]), int.parse(rgb[2]),1),teamElement[1],teamElement[2]*bonus - teamElement[3]*penalty]);
+      });
       yield ScoreDisplayBuilt(scoreboard);
     }
     if (event is BackgroundDisplayBecameOutdated) {

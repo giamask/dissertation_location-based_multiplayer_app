@@ -200,7 +200,6 @@ class _BackgroundViewState extends State<BackgroundView>
                   Container(
                     decoration: BoxDecoration(
                         color: Colors.transparent,),
-                    height: MediaQuery.of(context).size.height / 4.2,
                     child: Row(
                       children: <Widget>[
                         for (int i = 0; i < 3; i++)
@@ -245,9 +244,9 @@ class _BackgroundViewState extends State<BackgroundView>
                                                       width: 2),
                                                 ),
                                                 height: MediaQuery.of(context)
-                                                        .size
-                                                        .height /
-                                                    4.2,
+                                                    .size
+                                                    .width *
+                                                    0.264,
                                                 width: MediaQuery.of(context)
                                                         .size
                                                         .width *
@@ -256,9 +255,9 @@ class _BackgroundViewState extends State<BackgroundView>
                                             }
                                             return Container(
                                               height: MediaQuery.of(context)
-                                                      .size
-                                                      .height /
-                                                  4.2,
+                                                  .size
+                                                  .width *
+                                                  0.264,
                                               width: MediaQuery.of(context)
                                                       .size
                                                       .width *
@@ -271,9 +270,9 @@ class _BackgroundViewState extends State<BackgroundView>
                                       if (state is DragRequestInProgress) {
                                         return Container(
                                           height: MediaQuery.of(context)
-                                                  .size
-                                                  .height /
-                                              4.2,
+                                              .size
+                                              .width *
+                                              0.264,
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width *
@@ -292,9 +291,9 @@ class _BackgroundViewState extends State<BackgroundView>
                                       if (state is DragFull) {
                                         return Container(
                                           height: MediaQuery.of(context)
-                                                  .size
-                                                  .height /
-                                              4.2,
+                                              .size
+                                              .width *
+                                              0.264,
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width *

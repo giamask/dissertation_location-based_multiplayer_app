@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/KeyManagerBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
 import 'package:diplwmatikh_map_test/main.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -15,8 +17,9 @@ import 'DialogEvent.dart';
 class InitBloc extends Bloc<InitEvent,InitState>{
   final DialogBloc dialogBloc = DialogBloc();
   final BackgroundDisplayBloc backgroundDisplayBloc;
+  final KeyManagerBloc keyManagerBloc;
 
-  InitBloc(this.backgroundDisplayBloc);
+  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc);
 
   @override
   Future<void> close() {
@@ -31,9 +34,10 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   Stream<InitState> mapEventToState(InitEvent event) async*{
     if (event is GameInitialized) {
       ResourceManager resourceManager = ResourceManager();
-      await resourceManager.init(backgroundDisplayBloc);
+      await resourceManager.init(backgroundDisplayBloc,keyManagerBloc);
       String assetRegistry = await resourceManager.retrieveAssetRegistry();
       Set<Marker> markers = objectMarkersFromJson(assetRegistry);
+      keyManagerBloc.add(KeyManagerListInitialization());
       yield Initialized(markers: markers,controller: Completer());
     }
   }
@@ -74,7 +78,7 @@ class InitBloc extends Bloc<InitEvent,InitState>{
         LatLng(double.parse(object["ObjectLocation"].split(",")[0]),
             double.parse(object["ObjectLocation"].split(",")[1])),
         18);
-    MainWidgetState.cameraIdle=Completer();
+    MainWidgetState.cameraIdle=new Completer();
     await MainWidgetState.cameraIdle.future;
 
     List<dynamic> keyMatch = ResourceManager().readFromGameState(objectId: object["@ObjectId"]);
@@ -82,7 +86,6 @@ class InitBloc extends Bloc<InitEvent,InitState>{
     int slots = 3;
 
     List<bool> matches = [for (int i=0;i<keyMatch.length;i++) true, for (int i=0;i<slots-keyMatch.length;i++) false];
-
     dialogBloc.add(MarkerTap(id:object["@ObjectId"],name:object["ObjectTitle"],matches: matches,imagePath: object["ObjectImage"]));
 
   }
