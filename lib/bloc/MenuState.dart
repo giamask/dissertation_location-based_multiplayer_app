@@ -12,5 +12,5 @@ class MenuOpened extends MenuState{}
 class MenuHidden extends MenuState{}
 class MenuOpening extends MenuState{}
 class MenuClosing extends MenuState{}
-
+class MenuUninitialized extends MenuState{}
 

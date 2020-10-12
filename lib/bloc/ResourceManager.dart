@@ -45,6 +45,8 @@ class ResourceManager{
   GameState _gameState;
   int userId=1;
   int teamId;
+  List teamColor;
+  String teamName;
   //Initialization
   Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc) async{
     //firebase init
@@ -76,8 +78,10 @@ class ResourceManager{
 
     //gameState init
     _gameState = GameState(json.decode(await retrieveAssetRegistry()));
-    teamId=await teamIdFromUserId(userId.toString());
-
+    Map team = (await teamFromUserId(userId.toString()));
+    teamId=team['@TeamId'];
+    teamColor = team['Color'];
+    teamName = team['TeamName'];
   }
 
   Future<String> retrieveAssetRegistry() async{
@@ -204,7 +208,7 @@ class ResourceManager{
     if (messageReceived['data']['title']=="Move"){
       if (body['type']=="match"){
         displayAwareInsert(body);
-        keyManagerBloc.add(KeyManagerKeyMatch(await teamIdFromUserId(body["userId"]),body["userId"], body['keyId']));
+        keyManagerBloc.add(KeyManagerKeyMatch((await teamFromUserId(body["userId"]))['@TeamId'],body["userId"], body['keyId']));
       }
       else if (body['type']=="unmatch") {
         if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId'] == backgroundDisplayBloc.state.props[3]){
@@ -235,7 +239,7 @@ class ResourceManager{
     return matches;
   }
 
-  Future<int> teamIdFromUserId(String userId) async{
+  Future<Map> teamFromUserId(String userId) async{
     String assetRegistry = await retrieveAssetRegistry();
     Map assetJSON = jsonDecode(assetRegistry);
     List teams= assetJSON['joumerka']['Teams'];
@@ -243,7 +247,7 @@ class ResourceManager{
       List playerIds = element['PlayerIds'];
       if (playerIds.contains(userId)) return true;
       return false;
-    })['TeamId'];
+    });
   }
 
 

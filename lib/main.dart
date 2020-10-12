@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
             create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context),BlocProvider.of<KeyManagerBloc>(context)),
           ),
           BlocProvider<MenuBloc>(
-            create: (BuildContext context)=> MenuBloc(BlocProvider.of<AnimatorBloc>(context)),
+            create: (BuildContext context)=> MenuBloc(BlocProvider.of<AnimatorBloc>(context),BlocProvider.of<InitBloc>(context)),
           ),
         ], child: MainWidget()));
   }
@@ -193,7 +193,24 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
             BlocBuilder(
               bloc:BlocProvider.of<MenuBloc>(context),
               builder: (context,state){
-                if (!(state is MenuHidden)) return AnimatedPositioned(
+                if (state is MenuClosed) return Positioned(
+                  top: 48,
+                  right: (20.0+7*6.5),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Container(color:Colors.black45, child: Padding(
+                      padding: const EdgeInsets.all(7.0),
+                      child: Text(ResourceManager().teamName,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
+                    )),
+                  ),
+                );
+                    return Container();
+              }
+            ),
+            BlocBuilder(
+              bloc:BlocProvider.of<MenuBloc>(context),
+              builder: (context,state){
+                if (!(state is MenuHidden) && (!(state is MenuUninitialized))) return AnimatedPositioned(
                   right: 18,
                   top: (state is MenuOpening || state is MenuOpened) ? 83 : 43,
                   duration: Duration(milliseconds: 160),
@@ -205,7 +222,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
 
                       },
                       icon: Icons.category,
-                      color: state is MenuOpened ? Colors.grey[600] : Colors.blue[900],
+                      color: state is MenuOpened ? Colors.grey[600] : ((ResourceManager().teamColor==null)?Colors.blue[900]:Color.fromRGBO(ResourceManager().teamColor[0], ResourceManager().teamColor[1], ResourceManager().teamColor[2], 1)),
                       size: 40),
                 );
                 return Container();
