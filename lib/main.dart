@@ -6,6 +6,7 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
+import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
 import 'package:draggable_widget/draggable_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -252,7 +253,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     top: 78,
                     right: 65,
                     child: CustomFloatingButton(
-                      onTap: () {BlocProvider.of<KeyManagerBloc>(context).add(KeyManagerKeyMatch("","", 2));},
+                      onTap: () {},
                       icon: Icons.people,
                       color: Colors.purple[700],
                       size: 50,

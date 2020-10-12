@@ -8,7 +8,7 @@ abstract class KeyManagerEvent extends Equatable {
 }
 
 class KeyManagerKeyMatch extends KeyManagerEvent{
-  final String matchingTeam;
+  final int matchingTeam;
   final String matchingPlayer;
   final int keyId;
 

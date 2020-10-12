@@ -44,6 +44,7 @@ class ResourceManager{
   KeyManagerBloc keyManagerBloc;
   GameState _gameState;
   int userId=1;
+  int teamId;
   //Initialization
   Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc) async{
     //firebase init
@@ -51,7 +52,7 @@ class ResourceManager{
       onMessage: (message) async {_onFirebaseMessage(message);},
     );
     _firebaseMessaging.requestNotificationPermissions();
-    _firebaseMessaging.subscribeToTopic("session1");
+    _firebaseMessaging.subscribeToTopic("session3");
 
 //    TODO close them on closing the game instance. Uncommenting might be enough
     //KeyManagerBloc init
@@ -75,6 +76,7 @@ class ResourceManager{
 
     //gameState init
     _gameState = GameState(json.decode(await retrieveAssetRegistry()));
+    teamId=await teamIdFromUserId(userId.toString());
 
   }
 
@@ -202,7 +204,7 @@ class ResourceManager{
     if (messageReceived['data']['title']=="Move"){
       if (body['type']=="match"){
         displayAwareInsert(body);
-        keyManagerBloc.add(KeyManagerKeyMatch("team1", "player1", body['keyId']));
+        keyManagerBloc.add(KeyManagerKeyMatch(await teamIdFromUserId(body["userId"]),body["userId"], body['keyId']));
       }
       else if (body['type']=="unmatch") {
         if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId'] == backgroundDisplayBloc.state.props[3]){
@@ -231,6 +233,17 @@ class ResourceManager{
   List<dynamic> readFromGameState({@required objectId}){
     List<dynamic> matches = _gameState.read(objectId: objectId);
     return matches;
+  }
+
+  Future<int> teamIdFromUserId(String userId) async{
+    String assetRegistry = await retrieveAssetRegistry();
+    Map assetJSON = jsonDecode(assetRegistry);
+    List teams= assetJSON['joumerka']['Teams'];
+    return teams.firstWhere((element) {
+      List playerIds = element['PlayerIds'];
+      if (playerIds.contains(userId)) return true;
+      return false;
+    })['TeamId'];
   }
 
 
