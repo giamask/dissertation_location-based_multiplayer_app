@@ -250,5 +250,17 @@ class ResourceManager{
     });
   }
 
+  Future<List> getScore() async{
+    String parameters = "/score/1";
+    http.Response response = await _getRequest(parameters);
+    print(response.body);
+
+    try {
+      return (jsonDecode(response.body));
+    }
+    catch (e) {print(e);}
+
+  }
+
 
 }

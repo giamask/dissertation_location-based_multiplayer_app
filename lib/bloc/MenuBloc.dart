@@ -35,6 +35,13 @@ class MenuBloc extends Bloc<MenuEvent,MenuState>{
     );
   }
 
+  @override
+  Future<void> close(){
+    super.close();
+    subscriptionToIBloc.cancel();
+    subscriptionToABloc.cancel();
+  }
+
 
   @override
   MenuState get initialState => MenuUninitialized();
