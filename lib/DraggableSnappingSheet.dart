@@ -34,8 +34,6 @@ class _DraggableSnappingSheetState extends State<DraggableSnappingSheet> with Si
         animation: animationController,
         builder: (context,child){
           if (animationController.isCompleted) {
-
-
             animationController.reset();
             enabled=true;
             y=target;

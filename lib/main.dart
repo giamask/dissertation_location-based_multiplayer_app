@@ -198,7 +198,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   right: (20.0+7*6.5),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: Container(color:Colors.black45, child: Padding(
+                    child: Container(color:Color.fromRGBO(ResourceManager().teamColor[0], ResourceManager().teamColor[1], ResourceManager().teamColor[2], 1), child: Padding(
                       padding: const EdgeInsets.all(7.0),
                       child: Text(ResourceManager().teamName,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
                     )),
@@ -222,7 +222,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
 
                       },
                       icon: Icons.category,
-                      color: state is MenuOpened ? Colors.grey[600] : ((ResourceManager().teamColor==null)?Colors.blue[900]:Color.fromRGBO(ResourceManager().teamColor[0], ResourceManager().teamColor[1], ResourceManager().teamColor[2], 1)),
+                      color: state is MenuOpened ? Colors.grey[600] : (Colors.blue[900]),
                       size: 40),
                 );
                 return Container();

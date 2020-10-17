@@ -132,8 +132,9 @@ class ResourceManager{
   Future<Image> retrieveImage(String imageName) async{
     final String path = await _localPath;
     File imageFile=File("$path/assets/$imageName");
+
     try{
-      imageFile.readAsBytesSync();
+      if (imageFile.readAsBytesSync().isEmpty) throw FileSystemException();
       return Image.file(imageFile);
     }
     on FileSystemException catch(e){
