@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:diplwmatikh_map_test/BackgroundView.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorEvent.dart';
@@ -26,6 +27,8 @@ import 'bloc/InitState.dart';
 import 'bloc/BackgroundDisplayBloc.dart';
 import 'bloc/KeyManagerBloc.dart';
 import 'bloc/MenuBloc.dart';
+import 'bloc/NotificationBloc.dart';
+import 'bloc/NotificationEvent.dart';
 
 
 void main() => runApp(MyApp());
@@ -46,12 +49,15 @@ class MyApp extends StatelessWidget {
           BlocProvider<KeyManagerBloc>(
             create: (BuildContext context) => KeyManagerBloc(),
           ),
+          BlocProvider<NotificationBloc>(
+            create: (BuildContext context)=>NotificationBloc(),
+          ),
           BlocProvider<InitBloc>(
-            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context),BlocProvider.of<KeyManagerBloc>(context)),
+            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context),BlocProvider.of<KeyManagerBloc>(context),BlocProvider.of<NotificationBloc>(context)),
           ),
           BlocProvider<MenuBloc>(
             create: (BuildContext context)=> MenuBloc(BlocProvider.of<AnimatorBloc>(context),BlocProvider.of<InitBloc>(context)),
-          ),
+          )
         ], child: MainWidget()));
   }
 }
@@ -270,7 +276,13 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     top: 78,
                     right: 65,
                     child: CustomFloatingButton(
-                      onTap: () {},
+                      onTap: () {
+                        BlocProvider.of<NotificationBloc>(context).add(
+                            NotificationReceivedFromMatch(json:
+                                  {"session":1,"type":"move","objectId":1,"keyId":1,"userId":"1","currentMoveId":0,"lastMoveId":1,"position":1,"timestamp":"15:31"},
+
+                            ));
+                      },
                       icon: Icons.people,
                       color: Colors.purple[700],
                       size: 50,

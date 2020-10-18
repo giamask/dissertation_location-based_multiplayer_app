@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/DragState.dart';
 import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'AnimationBloc.dart';
 import 'DragEvent.dart';

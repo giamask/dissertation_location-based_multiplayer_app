@@ -8,29 +8,39 @@ abstract class NotificationEvent extends Equatable {
 }
 
 
-class NotificationReceived extends NotificationEvent{
+class NotificationReceivedFromMatch extends NotificationEvent{
+  final Map<String,dynamic> json;
+  NotificationReceivedFromMatch({@required this.json});
+
+  @override
+  List<Object> get props=>[json];
+}
+class NotificationReceivedFromUnmatch extends NotificationEvent{
+  final Map<String,dynamic> json;
+  NotificationReceivedFromUnmatch({@required this.json});
+
+  @override
+  List<Object> get props=>[json];
+}
+class NotificationReceivedFromAdmin extends NotificationEvent{
+  final String text;
+  final String timestamp;
+  NotificationReceivedFromAdmin({@required this.text,@required this.timestamp});
+
+  @override
+  List<Object> get props=>[text,timestamp];
+}
+
+class NotificationTrayOpened extends NotificationEvent{
 
 }
 
-class NotificationListOpened extends NotificationEvent{
-
-}
-
-class NotificationListClosed extends NotificationEvent{
+class NotificationTrayClosed extends NotificationEvent{
 
 }
 
 class NotificationDeleted extends NotificationEvent{
 
-}
-
-
-class NotificationFullMessageReceived extends NotificationEvent{
-  final String keyId;
-  NotificationFullMessageReceived({@required this.keyId});
-
-  @override
-  List<Object> get props=>[keyId];
 }
 
 

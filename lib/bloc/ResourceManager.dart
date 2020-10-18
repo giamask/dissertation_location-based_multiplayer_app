@@ -2,6 +2,7 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/NotificationEvent.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +12,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import '../GameState.dart';
 import 'KeyManagerBloc.dart';
+import 'NotificationBloc.dart';
 
 /*
 Για την χρήση αυτής της κλάσης χρειάζεται ο ορισμός ενός server (hardcoded σε local host) και η χρήση συγκεκριμένου formatting στα αρχεία. Συγκεκριμένα:
@@ -42,19 +44,20 @@ class ResourceManager{
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
   KeyManagerBloc keyManagerBloc;
+  NotificationBloc notificationBloc;
   GameState _gameState;
   int userId=1;
   int teamId;
   List teamColor;
   String teamName;
   //Initialization
-  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc) async{
+  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc) async{
     //firebase init
     _firebaseMessaging =FirebaseMessaging()..configure(
       onMessage: (message) async {_onFirebaseMessage(message);},
     );
     _firebaseMessaging.requestNotificationPermissions();
-    _firebaseMessaging.subscribeToTopic("session3");
+    _firebaseMessaging.subscribeToTopic("session4");
 
 //    TODO close them on closing the game instance. Uncommenting might be enough
     //KeyManagerBloc init
@@ -64,6 +67,8 @@ class ResourceManager{
     //BackgroundDisplayBloc init
 //    if (this.backgroundDisplayBloc!=null) this.backgroundDisplayBloc.close();
     this.backgroundDisplayBloc=backgroundDisplayBloc;
+
+    this.notificationBloc = notificationBloc;
 
     //assetRegistry init
     int version = await _recoverVersionNumber();
@@ -112,8 +117,8 @@ class ResourceManager{
 
   void getPastMoves() async{
     http.Response response= await _getRequest("/past_moves/");
-    print(response.body);
-    print(response.body.runtimeType);
+//    print(response.body);
+//    print(response.body.runtimeType);
 
   }
 
@@ -202,20 +207,38 @@ class ResourceManager{
   //Firebase Message Receiver
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{
 //    TODO confirm session number
+    print(messageReceived);
     Map<String,dynamic> body = json.decode(messageReceived['data']['body']);
-    updateCounter(body);
+
     // TODO call this and return if there has been a sync error
     // TODO count points if self
     if (messageReceived['data']['title']=="Move"){
+
       if (body['type']=="match"){
+        updateCounter(body);
+        backgroundDisplayBloc.scoreboard_changed= true;
         displayAwareInsert(body);
         keyManagerBloc.add(KeyManagerKeyMatch((await teamFromUserId(body["userId"]))['@TeamId'],body["userId"], body['keyId']));
+        notificationBloc.add(NotificationReceivedFromMatch(json:body));
       }
       else if (body['type']=="unmatch") {
+        updateCounter(body);
+        backgroundDisplayBloc.scoreboard_changed= true;
         if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId'] == backgroundDisplayBloc.state.props[3]){
           //version - specific code
           if (body['userId']==userId.toString()) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==userId.toString(),false));
+
+//          //spam filter
+//          Map team = await teamFromUserId(body['userId']);
+//           int score = backgroundDisplayBloc.scoreboard.firstWhere((element) => element[1]==team['TeamName'],orElse: ()=>[0,0,1])[2];
+//           if (score ==0) return;
+//          //
+          notificationBloc.add(NotificationReceivedFromUnmatch(json:body));
         }
+      }
+      else if (body['type']=="notification"){
+        print("hereeeeeeeeeeeee");
+        notificationBloc.add(NotificationReceivedFromAdmin(text:body['text'],timestamp: body['timestamp']));
       }
     }
 
@@ -254,9 +277,10 @@ class ResourceManager{
   Future<List> getScore() async{
     String parameters = "/score/1";
     http.Response response = await _getRequest(parameters);
-    print(response.body);
+
 
     try {
+      backgroundDisplayBloc.scoreboard_changed = false;
       return (jsonDecode(response.body));
     }
     catch (e) {print(e);}

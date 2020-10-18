@@ -316,12 +316,16 @@ class _BackgroundViewState extends State<BackgroundView>
                               BlocBuilder(
                                   bloc: BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].scoreChangeAnimation,
                                   builder: (context, state) {
-                                    if (state is AnimationInProgress && i==state.position)
-                                    return AnimatedScoreBubble(duration: Duration(milliseconds: 1200),
-                                    color: (state.correct)?Colors.lightGreen[700]:Colors.red[700],
-                                    points: (state.correct)?"+5":"-5",
-                                    onEnd: ()=>BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].scoreChangeAnimation.add(AnimationEnded(true)),
-                                    );
+
+
+                                    if (state is AnimationInProgress && i==state.position){
+                                      print(state);
+                                      return AnimatedScoreBubble(duration: Duration(milliseconds: 1700),
+                                      color: (state.correct)?Colors.lightGreen[700]:Colors.red[700],
+                                      points: (state.correct)?"+5":"-5",
+                                      onEnd: ()=>BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].scoreChangeAnimation.add(AnimationEnded(true)),
+                                    );}
+                                    print(state);
                                     return Container();
                                   })
 

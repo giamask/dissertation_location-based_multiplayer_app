@@ -13,13 +13,15 @@ import 'DialogBloc.dart';
 import 'InitEvent.dart';
 import 'InitState.dart';
 import 'DialogEvent.dart';
+import 'NotificationBloc.dart';
 
 class InitBloc extends Bloc<InitEvent,InitState>{
   final DialogBloc dialogBloc = DialogBloc();
   final BackgroundDisplayBloc backgroundDisplayBloc;
   final KeyManagerBloc keyManagerBloc;
+  final NotificationBloc notificationBloc;
 
-  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc);
+  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc);
 
   @override
   Future<void> close() {
@@ -34,7 +36,7 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   Stream<InitState> mapEventToState(InitEvent event) async*{
     if (event is GameInitialized) {
       ResourceManager resourceManager = ResourceManager();
-      await resourceManager.init(backgroundDisplayBloc,keyManagerBloc);
+      await resourceManager.init(backgroundDisplayBloc,keyManagerBloc,notificationBloc);
       String assetRegistry = await resourceManager.retrieveAssetRegistry();
       Set<Marker> markers = objectMarkersFromJson(assetRegistry);
       keyManagerBloc.add(KeyManagerListInitialization());

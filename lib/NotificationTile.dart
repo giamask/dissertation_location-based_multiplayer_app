@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:diplwmatikh_map_test/ZoomableInkwell.dart';
+import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -50,23 +51,29 @@ class _NotificationTileState extends State<NotificationTile>{
             ),
             trailing: Icon(Icons.cancel,color:Colors.white),
             subtitle: Padding(
-              padding: const EdgeInsets.only(bottom:3.0),
+              padding: const EdgeInsets.only(bottom:4.0,top: 1.3),
               child: widget.text,
             ),
-            children: <Widget>[
+            children: <Widget>[(widget.expandable?
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Container(
-                  constraints: BoxConstraints(maxHeight: 100),
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ZoomableInkwell(child: Image(image: AssetImage("assets/" + widget.assets[0]),),imageName:widget.assets[0]),
-                        Icon(Icons.arrow_forward,color: Colors.white,),
-                        ZoomableInkwell(child: Image(image: AssetImage("assets/" + widget.assets[1]),),imageName:widget.assets[1]),
-                      ]),
+                  padding: const EdgeInsets.only(bottom:3),
+                  constraints: const BoxConstraints(maxHeight: 100),
+                  child: FutureBuilder(
+                    future:Future.wait([ResourceManager().retrieveImage(widget.assets[0]),ResourceManager().retrieveImage(widget.assets[1])]),
+                    builder: (context, snapshot) {
+                      return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ZoomableInkwell(child: snapshot.hasData?snapshot.data[0]:CircularProgressIndicator(backgroundColor: Colors.purple[900],),imageName:widget.assets[0]),
+                            Icon(Icons.arrow_forward,color: Colors.white,),
+                            ZoomableInkwell(child: snapshot.hasData?snapshot.data[1]:CircularProgressIndicator(backgroundColor: Colors.purple[900],),imageName:widget.assets[1]),
+                          ]);
+                    }
+                  ),
                 ),
-              ),
+              ):Container()),
             ],
 
           ),

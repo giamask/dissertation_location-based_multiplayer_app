@@ -50,12 +50,12 @@ class AnimatedBubble extends AnimatedWidget{
     if (_progress.isCompleted) onEnd();
     return  AnimatedPositioned(
       curve: Curves.linear,
-      duration: Duration(milliseconds: 1100),
+      duration: Duration(milliseconds: 1000),
       right: 5,
-      top: _progress.value>0.05?0:40,
+      top: _progress.value>0.1?0:40,
       child: AnimatedOpacity(
-        opacity: _progress.value>0.05?0:1,
-        duration: Duration(milliseconds: 1100 ),
+        opacity: _progress.value>0.1?0:1,
+        duration: Duration(milliseconds: 1000),
         curve: Curves.easeInCubic,
         child: Container(
           decoration: BoxDecoration(color: color,borderRadius: BorderRadius.circular(40)),

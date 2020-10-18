@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:diplwmatikh_map_test/KeyListView.dart';
+import 'package:diplwmatikh_map_test/bloc/NotificationState.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -14,6 +15,8 @@ import 'NotificationTile.dart';
 import 'bloc/AnimatorBloc.dart';
 import 'bloc/AnimatorState.dart';
 import 'dart:ui' as ui;
+
+import 'bloc/NotificationBloc.dart';
 
 class KeyMenu extends StatefulWidget {
   @override
@@ -54,29 +57,17 @@ class _KeyMenuState extends State<KeyMenu> {
               Expanded(
 
                   child: AnimatedList(
+                    key: BlocProvider.of<NotificationBloc>(context).notificationListKey,
                     itemBuilder: (BuildContext context, int index,
                         Animation<double> animation) {
+                      List props = BlocProvider.of<NotificationBloc>(context).notificationsInTray[index];
                       return SlideTransition(
+                        key: Key(props[1].toString()),
                         position: Tween(begin: Offset(-1,0),end: Offset(0,0)).animate(CurvedAnimation(parent: animation,curve: Curves.easeOut),),
-                        child: NotificationTile(timestamp: "12:45", text: RichText(
-                            text: TextSpan(
-                                text: "Ο παίκτης ",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 15),
-                                children: [TextSpan(text: "User",style: TextStyle(fontWeight: FontWeight.bold)),
-                                  TextSpan(text:" της ομάδας "),
-                                  TextSpan(text:"Team 1",style: TextStyle(fontWeight: FontWeight.bold)),
-                                  TextSpan(text:" αντιστοίχισε το στοιχείο "),
-                                  TextSpan(text:"Clue",style: TextStyle(fontWeight: FontWeight.bold)),
-                                  TextSpan(text:" στην τοποθεσία "),
-                                  TextSpan(text:"Τοποθεσια νουμερο 1.",style: TextStyle(fontWeight: FontWeight.bold)),
-                                ],
-
-                            )),expandable: true,assets: ["k1.jpg","k2.jpg"],color: Color.fromRGBO(136, 0, 0, 1),),
-
+                        child: NotificationTile(timestamp: props[0], text: props[1],expandable: props[2],assets: props[3],color:props[4]),
                       );
                     },
-                    initialItemCount: 10,
+                    initialItemCount: 0,
                   )),
             ],
           ),
@@ -101,7 +92,13 @@ class _KeyMenuState extends State<KeyMenu> {
                   ),
                 ),
               )),
-          Positioned(top:8.65,left:MediaQuery.of(context).size.width/2 + 16.75,child: SizedBox(child: Container(decoration: BoxDecoration(color:Colors.red,borderRadius: BorderRadius.circular(10))),height: 6.5,width:6.5,)),
+          BlocBuilder(
+            bloc: BlocProvider.of<NotificationBloc>(context),
+            builder: (context,state) {
+              if (state != NotificationTrayUnread) return Container();
+              return Positioned(top:8.65,left:MediaQuery.of(context).size.width/2 + 16.75,child: SizedBox(child: Container(decoration: BoxDecoration(color:Colors.red,borderRadius: BorderRadius.circular(10))),height: 6.5,width:6.5,));
+            }
+          ),
         ],
       ),
       grabbingHeight: 30,
