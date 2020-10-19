@@ -5,7 +5,7 @@ import 'package:diplwmatikh_map_test/bloc/AnimationEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
 import 'package:diplwmatikh_map_test/bloc/DragEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuBloc.dart';
-import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:flutter/material.dart';
 import '../GameState.dart';
 import 'AnimationBloc.dart';

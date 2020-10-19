@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
-import 'bloc/ResourceManager.dart';
+import 'Repositories/ResourceManager.dart';
 
 class PopUp extends StatelessWidget {
   final int totalSlots;

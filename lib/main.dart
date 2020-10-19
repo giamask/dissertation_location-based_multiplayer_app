@@ -7,7 +7,7 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
-import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:draggable_widget/draggable_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -277,11 +277,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     right: 65,
                     child: CustomFloatingButton(
                       onTap: () {
-                        BlocProvider.of<NotificationBloc>(context).add(
-                            NotificationReceivedFromMatch(json:
-                                  {"session":1,"type":"move","objectId":1,"keyId":1,"userId":"1","currentMoveId":0,"lastMoveId":1,"position":1,"timestamp":"15:31"},
-
-                            ));
+                        ResourceManager().gameState.printAll();
                       },
                       icon: Icons.people,
                       color: Colors.purple[700],

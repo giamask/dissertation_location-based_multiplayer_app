@@ -1,4 +1,4 @@
-import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 

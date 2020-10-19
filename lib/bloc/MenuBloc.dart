@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorState.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
-import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'AnimatorBloc.dart';
 import 'BackgroundDisplayEvent.dart';

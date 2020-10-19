@@ -9,7 +9,7 @@ import 'AnimationBloc.dart';
 
 import 'NotificationEvent.dart';
 import 'NotificationState.dart';
-import 'ResourceManager.dart';
+import '../Repositories/ResourceManager.dart';
 
 class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
   final notificationListKey = GlobalKey<AnimatedListState>();
