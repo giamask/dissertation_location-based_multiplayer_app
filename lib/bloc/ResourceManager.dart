@@ -57,7 +57,7 @@ class ResourceManager{
       onMessage: (message) async {_onFirebaseMessage(message);},
     );
     _firebaseMessaging.requestNotificationPermissions();
-    _firebaseMessaging.subscribeToTopic("session4");
+    _firebaseMessaging.subscribeToTopic("session6");
 
 //    TODO close them on closing the game instance. Uncommenting might be enough
     //KeyManagerBloc init
@@ -207,7 +207,7 @@ class ResourceManager{
   //Firebase Message Receiver
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{
 //    TODO confirm session number
-    print(messageReceived);
+    print(messageReceived.toString() + " <- firebase message");
     Map<String,dynamic> body = json.decode(messageReceived['data']['body']);
 
     // TODO call this and return if there has been a sync error
@@ -237,7 +237,6 @@ class ResourceManager{
         }
       }
       else if (body['type']=="notification"){
-        print("hereeeeeeeeeeeee");
         notificationBloc.add(NotificationReceivedFromAdmin(text:body['text'],timestamp: body['timestamp']));
       }
     }

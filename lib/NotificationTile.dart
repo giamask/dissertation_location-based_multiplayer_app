@@ -1,24 +1,29 @@
 import 'dart:math';
 
 import 'package:diplwmatikh_map_test/ZoomableInkwell.dart';
+import 'package:diplwmatikh_map_test/bloc/NotificationEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'CustomExpansionTile.dart';
+import 'bloc/NotificationBloc.dart';
 
 class NotificationTile extends StatefulWidget {
   final bool expandable;
   final String timestamp;
   final RichText text;
   final List<String> assets;
+  final Function onDelete;
 
   final Color color;
   NotificationTile(
       {Key key,
         this.color=Colors.grey,
       this.expandable = false,
+        @required this.onDelete,
       @required this.timestamp,
       @required this.text,
       this.assets})
@@ -49,7 +54,7 @@ class _NotificationTileState extends State<NotificationTile>{
               style: TextStyle(
                   color: Colors.white, fontSize: 20),
             ),
-            trailing: Icon(Icons.cancel,color:Colors.white),
+            trailing: GestureDetector(child: Icon(Icons.cancel,color:Colors.white),onTap: widget.onDelete),
             subtitle: Padding(
               padding: const EdgeInsets.only(bottom:4.0,top: 1.3),
               child: widget.text,

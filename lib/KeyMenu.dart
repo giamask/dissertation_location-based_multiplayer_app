@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:diplwmatikh_map_test/KeyListView.dart';
+import 'package:diplwmatikh_map_test/bloc/NotificationEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/NotificationState.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,12 @@ class _KeyMenuState extends State<KeyMenu> {
   @override
   Widget build(BuildContext context) {
     return SnappingSheet(
+      snappingSheetController: BlocProvider.of<NotificationBloc>(context).snappingSheetController,
+      onSnapEnd: (){
+        double positionFactor =BlocProvider.of<NotificationBloc>(context).snappingSheetController.currentSnapPosition.positionFactor;
+        if (positionFactor>0.8) BlocProvider.of<NotificationBloc>(context).add(NotificationTrayOpened());
+        if (positionFactor <0.3) BlocProvider.of<NotificationBloc>(context).add(NotificationTrayClosed());
+      },
       sheetBelow: SnappingSheetContent(
         child: Container(
           color: Color.fromRGBO(0, 0, 0, 0.65),
@@ -57,6 +64,7 @@ class _KeyMenuState extends State<KeyMenu> {
               Expanded(
 
                   child: AnimatedList(
+                    controller: BlocProvider.of<NotificationBloc>(context).scrollController,
                     key: BlocProvider.of<NotificationBloc>(context).notificationListKey,
                     itemBuilder: (BuildContext context, int index,
                         Animation<double> animation) {
@@ -64,7 +72,9 @@ class _KeyMenuState extends State<KeyMenu> {
                       return SlideTransition(
                         key: Key(props[1].toString()),
                         position: Tween(begin: Offset(-1,0),end: Offset(0,0)).animate(CurvedAnimation(parent: animation,curve: Curves.easeOut),),
-                        child: NotificationTile(timestamp: props[0], text: props[1],expandable: props[2],assets: props[3],color:props[4]),
+                        child: NotificationTile(timestamp: props[0], text: props[1],expandable: props[2],assets: props[3],color:props[4],onDelete: (){
+                          BlocProvider.of<NotificationBloc>(context).add(NotificationDeleted(index));
+                        },),
                       );
                     },
                     initialItemCount: 0,
@@ -95,7 +105,7 @@ class _KeyMenuState extends State<KeyMenu> {
           BlocBuilder(
             bloc: BlocProvider.of<NotificationBloc>(context),
             builder: (context,state) {
-              if (state != NotificationTrayUnread) return Container();
+              if (state is NotificationTrayRead) return Container();
               return Positioned(top:8.65,left:MediaQuery.of(context).size.width/2 + 16.75,child: SizedBox(child: Container(decoration: BoxDecoration(color:Colors.red,borderRadius: BorderRadius.circular(10))),height: 6.5,width:6.5,));
             }
           ),

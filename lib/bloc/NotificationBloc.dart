@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:snapping_sheet/snapping_sheet.dart';
 
 import '../NotificationTile.dart';
 import 'AnimationBloc.dart';
@@ -13,6 +14,8 @@ import 'ResourceManager.dart';
 class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
   final notificationListKey = GlobalKey<AnimatedListState>();
   final List<List> notificationsInTray= [];
+  final SnappingSheetController snappingSheetController = SnappingSheetController();
+  final ScrollController scrollController = ScrollController();
 
   @override
   Future<void> close(){
@@ -33,9 +36,9 @@ class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
       Color color = Color.fromRGBO(colorValues[0],colorValues[1],colorValues[2],1);
       notificationsInTray.insert(0, [json['timestamp'],richText,true,["k${json['keyId'].toString()}.jpg","${json['objectId'.toString()]}.jpg"],color]);
       notificationListKey.currentState.insertItem(0,duration: Duration(seconds: 1));
-
-      yield NotificationTrayUnread();
+      if (snappingSheetController.currentSnapPosition == null || snappingSheetController.currentSnapPosition.positionFactor<0.8) yield NotificationTrayUnread();
     }
+
     if (event is NotificationReceivedFromUnmatch){
       Map<String,dynamic> json = event.props[0];
       Map team= (await ResourceManager().teamFromUserId(json['userId']));
@@ -45,25 +48,36 @@ class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
       Color color = Color.fromRGBO(colorValues[0],colorValues[1],colorValues[2],1);
       notificationsInTray.insert(0, [json['timestamp'],richText,false,null,color]);
       notificationListKey.currentState.insertItem(0,duration: Duration(seconds: 1));
-
-      yield NotificationTrayUnread();
+      if (snappingSheetController.currentSnapPosition == null || snappingSheetController.currentSnapPosition.positionFactor<0.8) yield NotificationTrayUnread();
     }
     if (event is NotificationReceivedFromAdmin){
       RichText richText = dataToRichText(event.props[0]);
-      final color = Colors.grey;
+      final color = Colors.grey[600];
       notificationsInTray.insert(0,[event.props[1],richText,false,null,color]);
       notificationListKey.currentState.insertItem(0,duration: Duration(seconds: 1));
-      yield NotificationTrayUnread();
+      if (snappingSheetController.currentSnapPosition == null || snappingSheetController.currentSnapPosition.positionFactor<0.8) yield NotificationTrayUnread();
     }
-    if (event is NotificationTrayOpened){
-      
+    if (event is NotificationTrayOpened && state is NotificationTrayUnread){
       yield NotificationTrayRead();
     }
     if (event is NotificationTrayClosed){
-      //TODO reset scroll
+      scrollController.jumpTo(scrollController.initialScrollOffset);
     }
     if (event is NotificationDeleted){
-      //TODO delete not by id
+
+      List props = notificationsInTray[event.index];
+      notificationListKey.currentState.removeItem(event.index, (context, animation) => FadeTransition(
+        opacity: Tween(begin: 0.0,end: 1.0).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve:Curves.easeIn,
+            )
+        ),
+        child: NotificationTile(timestamp: props[0], text: props[1],expandable: props[2],assets: props[3],color:props[4],onDelete: ()=>{}),
+        ),
+      duration: Duration(milliseconds: 600));
+      notificationsInTray.removeAt(event.index);
+
     }
 
   }

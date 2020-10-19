@@ -40,7 +40,11 @@ class NotificationTrayClosed extends NotificationEvent{
 }
 
 class NotificationDeleted extends NotificationEvent{
+  final int index;
+  NotificationDeleted(this.index);
 
+  @override
+  List<Object> get props=>[index];
 }
 
 
