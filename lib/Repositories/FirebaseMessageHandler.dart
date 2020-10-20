@@ -46,7 +46,7 @@ class FirebaseMessageHandler {
     backgroundDisplayBloc.scoreboard_changed= true;
     insertAndDisplay(match);
     notificationBloc.add(NotificationReceivedFromMatch(json:match));
-    keyManagerBloc.add(KeyManagerKeyMatch((await ResourceManager().teamFromUserId(match["userId"]))['@TeamId'],match["userId"], match['keyId']));
+    keyManagerBloc.add(KeyManagerKeyMatch((await ResourceManager().assetRegistryManager.teamFromUserId(match["userId"]))['@TeamId'],match["userId"], match['keyId']));
   }
 
   void unmatchHandler(Map<String,dynamic> unmatch) async{

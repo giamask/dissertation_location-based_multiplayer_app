@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/AssetRegistryManager.dart';
 import 'package:flutter/material.dart';
 import 'package:snapping_sheet/snapping_sheet.dart';
 
 import '../NotificationTile.dart';
-import 'AnimationBloc.dart';
-
 import 'NotificationEvent.dart';
 import 'NotificationState.dart';
-import '../Repositories/ResourceManager.dart';
+
 
 class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
   final notificationListKey = GlobalKey<AnimatedListState>();
@@ -32,7 +32,9 @@ class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
       Map<String,dynamic> json = event.props[0];
       String text = "Ο παίκτης <b>${json['userId']}</b> αντιστοίχισε το στοιχείο <b>${json['keyId'].toString()}</b> στην τοποθεσία <b>${json['objectId'].toString()}</b>.";
       RichText richText = dataToRichText(text);
+
       List colorValues = (await ResourceManager().teamFromUserId(json['userId']))['Color'];
+
       Color color = Color.fromRGBO(colorValues[0],colorValues[1],colorValues[2],1);
       notificationsInTray.insert(0, [json['timestamp'],richText,true,["k${json['keyId'].toString()}.jpg","${json['objectId'.toString()]}.jpg"],color]);
       notificationListKey.currentState.insertItem(0,duration: Duration(seconds: 1));
@@ -75,7 +77,7 @@ class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
         ),
         child: NotificationTile(timestamp: props[0], text: props[1],expandable: props[2],assets: props[3],color:props[4],onDelete: ()=>{}),
         ),
-      duration: Duration(milliseconds: 600));
+      duration: Duration(milliseconds: 400));
       notificationsInTray.removeAt(event.index);
 
     }

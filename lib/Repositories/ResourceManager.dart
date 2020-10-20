@@ -1,4 +1,5 @@
 import 'package:diplwmatikh_map_test/GameState.dart';
+import 'AssetRegistryManager.dart';
 import 'FirebaseMessageHandler.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
@@ -30,10 +31,6 @@ enum Status{
 }
 
 class ResourceManager{
-
-
-
-
   // Singleton
   static final ResourceManager _resourceManager= ResourceManager._internal();
 
@@ -53,9 +50,11 @@ class ResourceManager{
   List teamColor;
   String teamName;
   FirebaseMessageHandler firebaseMessageHandler;
+  AssetRegistryManager assetRegistryManager;
   //Initialization
   Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc) async{
-
+    assetRegistryManager = AssetRegistryManager();
+    firebaseMessageHandler= FirebaseMessageHandler(backgroundDisplayBloc,keyManagerBloc,notificationBloc);
     //firebase init
     _firebaseMessaging =FirebaseMessaging()..configure(
       onMessage: (message) async {_onFirebaseMessage(message);},
@@ -75,38 +74,31 @@ class ResourceManager{
     this.notificationBloc = notificationBloc;
 
     //assetRegistry init
-    int version = await _recoverVersionNumber();
+    int version = await assetRegistryManager.getVersionNumber();
     http.Response response= await  _getRequest("/init/1?version=$version");
     if (response.statusCode!=HttpStatus.ok){
       status=Status.error;
       return;
     }
     await createAssetDirectory();
-    if(!(response.body.contains("confirm"))) _replaceAssetRegistry(response.body);
+    if(!(response.body.contains("confirm"))) assetRegistryManager.replaceAssetRegistry(response.body);
     status = Status.initialized;
-
     //gameState init
-    gameState = GameState(json.decode(await retrieveAssetRegistry()));
-    Map team = (await teamFromUserId(userId.toString()));
+    gameState = GameState(json.decode(await assetRegistryManager.retrieveAssetRegistry()));
+    Map team = (await assetRegistryManager.teamFromUserId(userId.toString()));
     teamId=team['@TeamId'];
     teamColor = team['Color'];
     teamName = team['TeamName'];
 
-    firebaseMessageHandler= FirebaseMessageHandler(backgroundDisplayBloc,keyManagerBloc,notificationBloc);
+
   }
 
-  Future<String> retrieveAssetRegistry() async{
-    final path=await _localPath;
-    File registry=File("$path\\asset_registry.json");
-    try{
-      return registry.readAsStringSync();
-    }
-    on FileSystemException catch(e){
-      return "Cannot find asset registry.";
-    }
-  }
+  void _onFirebaseMessage(Map<String,dynamic> messageReceived) async => firebaseMessageHandler.messageReceiver(messageReceived);
+  Future<String> retrieveAssetRegistry() async =>  assetRegistryManager.retrieveAssetRegistry();
+  Future<Map> teamFromUserId(String userId) async => assetRegistryManager.teamFromUserId(userId);
 
-  Future<String> addMove({@required int objectId, @required int keyId, @required String type, int position}) async{
+
+  Future<String> addMove({@required  int objectId, @required int keyId, @required String type, int position}) async{
     String extension="/move?objectId=${objectId.toString()}&userId=1&sessionId=1&type=$type";
     extension += "&keyId=${(type!="scan")?keyId:"null"}";
     if (position!=null) extension +="&position=$position";
@@ -128,20 +120,32 @@ class ResourceManager{
 
   }
 
-  Future<List<int>> requestKeys() async {
-    String parameters = "/keys?sessionId=1&userId=1";
+  Future<List> getScore() async{
+    String parameters = "/score/1";
     http.Response response = await _getRequest(parameters);
-    Map responseJson = json.decode(response.body);
     try {
-
-      return (responseJson['keys'] as List<dynamic>).cast<int>();
+      backgroundDisplayBloc.scoreboard_changed = false;
+      return (jsonDecode(response.body));
     }
     catch (e) {print(e);}
   }
 
+  Future<List<int>> getKeys() async {
+    String parameters = "/keys?sessionId=1&userId=1";
+    http.Response response = await _getRequest(parameters);
+    Map responseJson = json.decode(response.body);
+    try {
+      return (responseJson['keys'] as List<dynamic>).cast<int>();
+    }
+    catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
   //ImageRetrieval
   Future<Image> retrieveImage(String imageName) async{
-    final String path = await _localPath;
+    final String path = await assetRegistryManager.localPath;
     File imageFile=File("$path/assets/$imageName");
 
     try{
@@ -155,16 +159,17 @@ class ResourceManager{
     }
   }
 
-// get local path
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
+  //asset directory creator function
+  Future<void> createAssetDirectory() async{
+    final path=await assetRegistryManager.localPath;
+    Directory(path +"/assets").create();
   }
 
-  //send post request
+
+
   Future<http.Response> _getRequest(String extension) async {
-//    String url = 'http://192.168.2.2:8888'; //server hardcode here
-    String url = 'http://hci.ece.upatras.gr:8888'; //server hardcode here
+//    String url = 'http://192.168.2.2:8888'; // local host
+    String url = 'http://hci.ece.upatras.gr:8888'; // hci server
 
     http.Response response = await http
         .get(url + extension);
@@ -172,46 +177,8 @@ class ResourceManager{
     return response;
   }
 
-  //get version number from the asset registry
-  Future<int> _recoverVersionNumber() async{
-    final path=await _localPath;
-    File registry=File("$path\\asset_registry.json");
-    try {
-      String registryContents = registry.readAsStringSync();
-      if (registryContents==null) return 0;
-      Map parsedJson = json.decode(registryContents);
-      return parsedJson['version'];
-    }
-    on FileSystemException catch(e){
-      return 0;
-    }
-
-  }
-
-
-  //delete previous registry and save current
-  void _replaceAssetRegistry(jsonFile) async{
-    final path=await _localPath;
-    File registry=File("$path\\asset_registry.json");
-    registry.writeAsStringSync(jsonFile);
-  }
-
-  void debugPrint(String path) async{
-    File file=File(path);
-    String contents=file.readAsStringSync();
-    print("Debug Print:" + contents);
-  }
-
-  //asset directory creator function
-  Future<void> createAssetDirectory() async{
-    final path=await _localPath;
-    Directory(path +"/assets").create();
-
-  }
-
 
   //Firebase Message Receiver
-  void _onFirebaseMessage(Map<String,dynamic> messageReceived) async{firebaseMessageHandler.messageReceiver(messageReceived);}
 
 
 
@@ -228,29 +195,9 @@ class ResourceManager{
     return matches;
   }
 
-  Future<Map> teamFromUserId(String userId) async{
-    String assetRegistry = await retrieveAssetRegistry();
-    Map assetJSON = jsonDecode(assetRegistry);
-    List teams= assetJSON['joumerka']['Teams'];
-    return teams.firstWhere((element) {
-      List playerIds = element['PlayerIds'];
-      if (playerIds.contains(userId)) return true;
-      return false;
-    });
-  }
-
-  Future<List> getScore() async{
-    String parameters = "/score/1";
-    http.Response response = await _getRequest(parameters);
 
 
-    try {
-      backgroundDisplayBloc.scoreboard_changed = false;
-      return (jsonDecode(response.body));
-    }
-    catch (e) {print(e);}
 
-  }
 
 
 }

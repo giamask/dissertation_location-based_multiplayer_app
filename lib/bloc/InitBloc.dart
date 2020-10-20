@@ -8,7 +8,6 @@ import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:diplwmatikh_map_test/main.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../GameState.dart';
 import 'DialogBloc.dart';
 import 'InitEvent.dart';
 import 'InitState.dart';

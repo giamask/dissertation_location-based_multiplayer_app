@@ -276,8 +276,9 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     top: 78,
                     right: 65,
                     child: CustomFloatingButton(
-                      onTap: () {
-                        ResourceManager().gameState.printAll();
+                      onTap: () async{
+                        print(await ResourceManager().assetRegistryManager.teamFromUserId("1"));
+
                       },
                       icon: Icons.people,
                       color: Colors.purple[700],
