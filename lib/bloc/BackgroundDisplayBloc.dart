@@ -5,7 +5,7 @@ import 'package:diplwmatikh_map_test/bloc/AnimationEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
 import 'package:diplwmatikh_map_test/bloc/DragEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuBloc.dart';
-import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:flutter/material.dart';
 import '../GameState.dart';
 import 'AnimationBloc.dart';
@@ -20,6 +20,8 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
   int slots = 3;
   //hardcode TODO
 
+  List<List> scoreboard = [];
+  bool scoreboard_changed=true;
 
   final List<DragBloc> dragBlocList = [];
 
@@ -58,15 +60,24 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     if (event is BackgroundDisplayChangedToScore) {
       yield BackgroundDisplayBuildInProgress();
       //TODO rebuild on change
-      List scoreList = await ResourceManager().getScore();
-      Map assetRegistry =  jsonDecode(await ResourceManager().retrieveAssetRegistry());
-      int bonus = assetRegistry["joumerka"]["Score"]["ScoreBonus"];
-      int penalty = assetRegistry["joumerka"]["Score"]["ScorePenalty"];
-      List<List> scoreboard = [];
-      scoreList.forEach((teamElement) {
-        List rgb = teamElement[0].split(",");
-        scoreboard.add([Color.fromRGBO(int.parse(rgb[0]), int.parse(rgb[1]), int.parse(rgb[2]),1),teamElement[1],teamElement[2]*bonus - teamElement[3]*penalty]);
-      });
+      if (scoreboard_changed) {
+        List scoreList = await ResourceManager().getScore();
+        Map assetRegistry = jsonDecode(
+            await ResourceManager().retrieveAssetRegistry());
+        scoreboard = [];
+        scoreList.forEach((teamElement) {
+          var teamId = teamElement[0];
+          Map team = (assetRegistry['joumerka']['Teams'] as List).firstWhere((
+              element) => element['@TeamId'] == teamId);
+          var score = teamElement[1].toString();
+          scoreboard.add([
+            Color.fromRGBO(
+                team['Color'][0], team['Color'][1], team['Color'][2], 1),
+            team['TeamName'],
+            score
+          ]);
+        });
+      }
       yield ScoreDisplayBuilt(scoreboard);
     }
     if (event is BackgroundDisplayBecameOutdated) {

@@ -21,7 +21,7 @@ class ScoreView extends StatelessWidget {
                     title: Text(scoreboard[index][1],style: TextStyle(color: Colors.white),),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(scoreboard[index][2].toString(),style: TextStyle(color: Colors.white)),
+                      child: Text(scoreboard[index][2],style: TextStyle(color: Colors.white)),
                     ),
                   );
                 },

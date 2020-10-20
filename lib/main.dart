@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:diplwmatikh_map_test/BackgroundView.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorEvent.dart';
@@ -6,7 +7,7 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
-import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:draggable_widget/draggable_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,6 +27,8 @@ import 'bloc/InitState.dart';
 import 'bloc/BackgroundDisplayBloc.dart';
 import 'bloc/KeyManagerBloc.dart';
 import 'bloc/MenuBloc.dart';
+import 'bloc/NotificationBloc.dart';
+import 'bloc/NotificationEvent.dart';
 
 
 void main() => runApp(MyApp());
@@ -46,12 +49,15 @@ class MyApp extends StatelessWidget {
           BlocProvider<KeyManagerBloc>(
             create: (BuildContext context) => KeyManagerBloc(),
           ),
+          BlocProvider<NotificationBloc>(
+            create: (BuildContext context)=>NotificationBloc(),
+          ),
           BlocProvider<InitBloc>(
-            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context),BlocProvider.of<KeyManagerBloc>(context)),
+            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context),BlocProvider.of<KeyManagerBloc>(context),BlocProvider.of<NotificationBloc>(context)),
           ),
           BlocProvider<MenuBloc>(
             create: (BuildContext context)=> MenuBloc(BlocProvider.of<AnimatorBloc>(context),BlocProvider.of<InitBloc>(context)),
-          ),
+          )
         ], child: MainWidget()));
   }
 }
@@ -198,7 +204,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                   right: (20.0+7*6.5),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(18),
-                    child: Container(color:Colors.black45, child: Padding(
+                    child: Container(color:Color.fromRGBO(ResourceManager().teamColor[0], ResourceManager().teamColor[1], ResourceManager().teamColor[2], 1), child: Padding(
                       padding: const EdgeInsets.all(7.0),
                       child: Text(ResourceManager().teamName,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
                     )),
@@ -222,7 +228,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
 
                       },
                       icon: Icons.category,
-                      color: state is MenuOpened ? Colors.grey[600] : ((ResourceManager().teamColor==null)?Colors.blue[900]:Color.fromRGBO(ResourceManager().teamColor[0], ResourceManager().teamColor[1], ResourceManager().teamColor[2], 1)),
+                      color: state is MenuOpened ? Colors.grey[600] : (Colors.blue[900]),
                       size: 40),
                 );
                 return Container();
@@ -270,7 +276,10 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     top: 78,
                     right: 65,
                     child: CustomFloatingButton(
-                      onTap: () {},
+                      onTap: () async{
+                        print(await ResourceManager().assetRegistryManager.teamFromUserId("1"));
+
+                      },
                       icon: Icons.people,
                       color: Colors.purple[700],
                       size: 50,

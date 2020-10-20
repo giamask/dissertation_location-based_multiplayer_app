@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:diplwmatikh_map_test/bloc/ResourceManager.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:flutter/material.dart';
 
 import '../KeyListTile.dart';
@@ -26,7 +26,7 @@ class KeyManagerBloc extends Bloc<KeyManagerEvent, KeyManagerState> {
 
     if (event is KeyManagerKeyMatch && keyList.contains(event.props[2]) && !(state is KeyManagerUninitialized)) {
       yield(KeyManagerListUpdateInProgress());
-      List<int> newKeyList = await ResourceManager().requestKeys();
+      List<int> newKeyList = await ResourceManager().getKeys();
       List<int> elementsToRemoveList = keyList.where((element) => !newKeyList.contains(element)).toList();
       List<int> elementsToAddList = newKeyList.where((element) => !keyList.contains(element)).toList();
       // removing items from the list
@@ -54,7 +54,7 @@ class KeyManagerBloc extends Bloc<KeyManagerEvent, KeyManagerState> {
 
 
     if (event is KeyManagerListInitialization && state is KeyManagerUninitialized) {
-      List<int> newKeyList = await ResourceManager().requestKeys();
+      List<int> newKeyList = await ResourceManager().getKeys();
 //      List<int> newKeyList = [1,2,3,4,5];
       keyList = newKeyList;
       yield (KeyManagerListUpdated());
