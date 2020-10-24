@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
 abstract class DragEvent extends Equatable {
@@ -19,20 +20,22 @@ class DragCommitted extends DragEvent{
 
 class DragResponsePositive extends DragEvent{
   final String keyId;
-  DragResponsePositive({@required this.keyId});
+  final Color color;
+  DragResponsePositive({@required this.keyId,@required this.color});
   @override
-  List<Object> get props=>[keyId];
+  List<Object> get props=>[keyId,color];
 }
 
 class DragResponseNegative extends DragEvent{}
 class DragResponseTimeout extends DragEvent{}
 
 class DragFullMessageReceived extends DragEvent{
+  final Color color;
   final String keyId;
-  DragFullMessageReceived({@required this.keyId});
+  DragFullMessageReceived({@required this.keyId,@required this.color});
 
   @override
-  List<Object> get props=>[keyId];
+  List<Object> get props=>[keyId,color];
 }
 
 

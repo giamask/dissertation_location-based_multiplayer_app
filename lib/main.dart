@@ -30,7 +30,6 @@ import 'bloc/MenuBloc.dart';
 import 'bloc/NotificationBloc.dart';
 import 'bloc/NotificationEvent.dart';
 
-
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -50,13 +49,18 @@ class MyApp extends StatelessWidget {
             create: (BuildContext context) => KeyManagerBloc(),
           ),
           BlocProvider<NotificationBloc>(
-            create: (BuildContext context)=>NotificationBloc(),
+            create: (BuildContext context) => NotificationBloc(),
           ),
           BlocProvider<InitBloc>(
-            create: (BuildContext context) => InitBloc(BlocProvider.of<BackgroundDisplayBloc>(context),BlocProvider.of<KeyManagerBloc>(context),BlocProvider.of<NotificationBloc>(context)),
+            create: (BuildContext context) => InitBloc(
+                BlocProvider.of<BackgroundDisplayBloc>(context),
+                BlocProvider.of<KeyManagerBloc>(context),
+                BlocProvider.of<NotificationBloc>(context)),
           ),
           BlocProvider<MenuBloc>(
-            create: (BuildContext context)=> MenuBloc(BlocProvider.of<AnimatorBloc>(context),BlocProvider.of<InitBloc>(context)),
+            create: (BuildContext context) => MenuBloc(
+                BlocProvider.of<AnimatorBloc>(context),
+                BlocProvider.of<InitBloc>(context)),
           )
         ], child: MainWidget()));
   }
@@ -81,7 +85,6 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
       northeast: LatLng(39.653284, 21.243507),
       southwest: LatLng(39.201644, 20.8584));
 
-
   Animation shrinkExpandAnimation;
   @override
   void initState() {
@@ -93,27 +96,34 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
     );
     shrinkExpandAnimation = Tween(begin: 0.0, end: 0.8)
         .animate(BlocProvider.of<AnimatorBloc>(context).animationController);
-    BlocProvider.of<AnimatorBloc>(context).animationController.addStatusListener((status) {
-      if (status==AnimationStatus.completed || status==AnimationStatus.dismissed){
+    BlocProvider.of<AnimatorBloc>(context)
+        .animationController
+        .addStatusListener((status) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
         BlocProvider.of<AnimatorBloc>(context).add(AnimationCompleted());
       }
     });
   }
 
   @override
-  void dispose(){
+  void dispose() {
     super.dispose();
     BlocProvider.of<AnimatorBloc>(context).animationController.dispose();
     BlocProvider.of<AnimatorBloc>(context).close();
     BlocProvider.of<InitBloc>(context).close();
     BlocProvider.of<BackgroundDisplayBloc>(context).close();
     BlocProvider.of<MenuBloc>(context).close();
+    BlocProvider.of<NotificationBloc>(context).close();
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapExpanded()); return false;},
+      onWillPop: () async {
+        BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapExpanded());
+        return false;
+      },
       child: Scaffold(
           body: BlocBuilder<InitBloc, InitState>(builder: (context, state) {
         if (state is InitializeInProgress)
@@ -126,36 +136,48 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
           children: <Widget>[
             BackgroundView(BlocProvider.of<BackgroundDisplayBloc>(context)),
             BlocBuilder(
-              bloc:BlocProvider.of<AnimatorBloc>(context),
-              builder: (context,state){
-                  return DraggableWidget(
-                    normalShadow: BoxShadow(color: Colors.transparent),
-                    dragController: BlocProvider.of<AnimatorBloc>(context).dragController,
-                    topMargin: 50,
-                    bottomMargin: 237,
-                    child:Opacity(
-                      opacity: (BlocProvider.of<AnimatorBloc>(context).state is MapView)?0.0:1.0,
-                      child: GestureDetector(
-                        child: Image.asset(
-                          "assets/map_icon.png",
-                          height: 60,
-                        ),
-                        onTap: ()=> BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapExpanded()),
+              bloc: BlocProvider.of<AnimatorBloc>(context),
+              builder: (context, state) {
+                return DraggableWidget(
+                  normalShadow: BoxShadow(color: Colors.transparent),
+                  dragController:
+                      BlocProvider.of<AnimatorBloc>(context).dragController,
+                  topMargin: 50,
+                  bottomMargin: 237,
+                  child: Opacity(
+                    opacity: (BlocProvider.of<AnimatorBloc>(context).state
+                            is MapView)
+                        ? 0.0
+                        : 1.0,
+                    child: GestureDetector(
+                      child: Image.asset(
+                        "assets/map_icon.png",
+                        height: 60,
                       ),
+                      onTap: () => BlocProvider.of<AnimatorBloc>(context)
+                          .add(AnimatorMapExpanded()),
                     ),
-                  );
+                  ),
+                );
               },
             ),
-            AnimatedMapBuilder(shrinkExpandAnimation: shrinkExpandAnimation, kGooglePlex: _kGooglePlex, latLngBounds: latLngBounds,stateProps: state.props,),
+            AnimatedMapBuilder(
+              shrinkExpandAnimation: shrinkExpandAnimation,
+              kGooglePlex: _kGooglePlex,
+              latLngBounds: latLngBounds,
+              stateProps: state.props,
+            ),
             KeyMenu(),
             BlocListener(
                 bloc: BlocProvider.of<InitBloc>(context).dialogBloc,
                 listener: (context, state) {
-                  BackgroundDisplayBloc displayBloc = BlocProvider.of<BackgroundDisplayBloc>(context);
-                  AnimatorBloc animatorBloc = BlocProvider.of<AnimatorBloc>(context);
+                  BackgroundDisplayBloc displayBloc =
+                      BlocProvider.of<BackgroundDisplayBloc>(context);
+                  AnimatorBloc animatorBloc =
+                      BlocProvider.of<AnimatorBloc>(context);
                   if (state is Ready) {
                     showGeneralDialog(
-                      barrierColor: Colors.black26,
+                        barrierColor: Colors.black26,
                         context: context,
                         barrierLabel: "Label",
                         transitionDuration: Duration(milliseconds: 100),
@@ -164,7 +186,8 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                           return Stack(
                             children: <Widget>[
                               Positioned(
-                                top: MediaQuery.of(context).size.height / 2 - 210,
+                                top: MediaQuery.of(context).size.height / 2 -
+                                    210,
                                 left: MediaQuery.of(context).size.width / 2 -
                                     PopUp.WIDTH / 2,
                                 child: GestureDetector(
@@ -177,108 +200,146 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                                         width: PopUp.WIDTH,
                                         child: Material(
                                             color: Colors.transparent,
-                                            child: PopUp(
-                                                3,
-                                                state.props[2],
-                                                () {
-                                                  Navigator.of(context).pop();
-                                                  displayBloc.add(BackgroundDisplayChangedToObject(id:state.props[0]));
-                                                  animatorBloc.add(AnimatorMapShrunk());
-                                                  },
-                                                state.props[1],
-                                                state.props[4],
-                                                state.props[3])))),
+                                            child: PopUp(colors: state.props[4],totalSlots: 3, slotsFilled: state.props[2], onTap: () {
+                                              Navigator.of(context).pop();
+                                              displayBloc.add(
+                                                  BackgroundDisplayChangedToObject(
+                                                      id: state.props[0]));
+                                              animatorBloc
+                                                  .add(AnimatorMapShrunk());
+                                            }, name: state.props[1],image: state.props[5],
+                                                imageName: state.props[3])))),
                               )
                             ],
                           );
                         });
                   }
-
                 },
                 child: Container()),
             BlocBuilder(
-              bloc:BlocProvider.of<MenuBloc>(context),
-              builder: (context,state){
-                if (state is MenuClosed) return Positioned(
-                  top: 48,
-                  right: (20.0+7*6.5),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Container(color:Color.fromRGBO(ResourceManager().teamColor[0], ResourceManager().teamColor[1], ResourceManager().teamColor[2], 1), child: Padding(
-                      padding: const EdgeInsets.all(7.0),
-                      child: Text(ResourceManager().teamName,style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),),
-                    )),
-                  ),
-                );
-                    return Container();
-              }
-            ),
+                bloc: BlocProvider.of<MenuBloc>(context),
+                builder: (context, state) {
+                  if (!(state is MenuHidden))
+                    return Positioned(
+                      top: 48,
+                      left: 18,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: GestureDetector(
+                          onTap: () {
+                            BlocProvider.of<BackgroundDisplayBloc>(context)
+                                .add(BackgroundDisplayChangedToScore());
+                            BlocProvider.of<AnimatorBloc>(context)
+                                .add(AnimatorMapShrunk());
+                          },
+                          child: Container(
+                              color: Color.fromRGBO(
+                                  ResourceManager().teamColor[0],
+                                  ResourceManager().teamColor[1],
+                                  ResourceManager().teamColor[2],
+                                  1),
+                              child: Padding(
+                                padding: const EdgeInsets.all(7.0),
+                                child: Text(
+                                  ResourceManager().teamName,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              )),
+                        ),
+                      ),
+                    );
+                  return Container();
+                }),
             BlocBuilder(
-              bloc:BlocProvider.of<MenuBloc>(context),
-              builder: (context,state){
-                if (!(state is MenuHidden) && (!(state is MenuUninitialized))) return AnimatedPositioned(
-                  right: 18,
-                  top: (state is MenuOpening || state is MenuOpened) ? 83 : 43,
-                  duration: Duration(milliseconds: 160),
-                  onEnd: () => BlocProvider.of<MenuBloc>(context).add(MenuAnimationCompleted()),
-                  child: CustomFloatingButton(
-                      onTap: () {
-                        if (state is MenuOpened) BlocProvider.of<MenuBloc>(context).add(MenuClose());
-                        if (state is MenuClosed) BlocProvider.of<MenuBloc>(context).add(MenuOpen());
-
-                      },
-                      icon: Icons.category,
-                      color: state is MenuOpened ? Colors.grey[600] : (Colors.blue[900]),
-                      size: 40),
-                );
-                return Container();
-              }
-            ),
+                bloc: BlocProvider.of<MenuBloc>(context),
+                builder: (context, state) {
+                  if (!(state is MenuHidden) && (!(state is MenuUninitialized)))
+                    return AnimatedPositioned(
+                      right: 18,
+                      top: (state is MenuOpening || state is MenuOpened)
+                          ? 83
+                          : 43,
+                      duration: Duration(milliseconds: 160),
+                      onEnd: () => BlocProvider.of<MenuBloc>(context)
+                          .add(MenuAnimationCompleted()),
+                      child: CustomFloatingButton(
+                          onTap: () {
+                            if (state is MenuOpened)
+                              BlocProvider.of<MenuBloc>(context)
+                                  .add(MenuClose());
+                            if (state is MenuClosed)
+                              BlocProvider.of<MenuBloc>(context)
+                                  .add(MenuOpen());
+                          },
+                          icon: Icons.category,
+                          color: state is MenuOpened
+                              ? Colors.grey[600]
+                              : (Colors.blue[900]),
+                          size: 40),
+                    );
+                  return Container();
+                }),
             BlocBuilder(
-              bloc:BlocProvider.of<MenuBloc>(context),
-              builder: (context,state){
-                if (state is MenuOpened){
+              bloc: BlocProvider.of<MenuBloc>(context),
+              builder: (context, state) {
+                if (state is MenuOpened) {
                   return Positioned(
                     top: 30,
                     right: 30,
                     child: CustomFloatingButton(
-                        onTap:(){
-                          BlocProvider.of<BackgroundDisplayBloc>(context).add(BackgroundDisplayChangedToScore());
-                          BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapShrunk());
+                        onTap: () {
+                          BlocProvider.of<BackgroundDisplayBloc>(context)
+                              .add(BackgroundDisplayChangedToScore());
+                          BlocProvider.of<AnimatorBloc>(context)
+                              .add(AnimatorMapShrunk());
                         },
                         child: Stack(
                           children: <Widget>[
-                            Icon(Icons.score,color:Colors.white,size: 28,),
+                            Icon(
+                              Icons.score,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                             Positioned(
-                              top:5,
-                              left:6,
+                              top: 5,
+                              left: 6,
                               child: Container(
                                 height: 8,
                                 width: 17,
-                                color:Colors.white,
-                                child: Center(child: Text("20",style: TextStyle(fontSize: 9.1,fontWeight: FontWeight.bold,color: Colors.purple[700]),)),
+                                color: Colors.white,
+                                child: Center(
+                                    child: Text(
+                                  "20",
+                                  style: TextStyle(
+                                      fontSize: 9.1,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.purple[700]),
+                                )),
                               ),
                             )
-
                           ],
                         ),
-                        color: Colors.purple[700], size: 50),
+                        color: Colors.purple[700],
+                        size: 50),
                   );
                 }
                 return Container();
               },
             ),
             BlocBuilder(
-              bloc:BlocProvider.of<MenuBloc>(context),
-              builder: (context,state){
-                if (state is MenuOpened){
+              bloc: BlocProvider.of<MenuBloc>(context),
+              builder: (context, state) {
+                if (state is MenuOpened) {
                   return Positioned(
                     top: 78,
                     right: 65,
                     child: CustomFloatingButton(
-                      onTap: () async{
-                        print(await ResourceManager().assetRegistryManager.teamFromUserId("1"));
-
+                      onTap: () async {
+                        print(await ResourceManager()
+                            .assetRegistryManager
+                            .teamFromUserId("1"));
                       },
                       icon: Icons.people,
                       color: Colors.purple[700],
@@ -290,9 +351,9 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
               },
             ),
             BlocBuilder(
-              bloc:BlocProvider.of<MenuBloc>(context),
-              builder: (context,state){
-                if (state is MenuOpened){
+              bloc: BlocProvider.of<MenuBloc>(context),
+              builder: (context, state) {
+                if (state is MenuOpened) {
                   return Positioned(
                     top: 125,
                     right: 30,
@@ -327,7 +388,5 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
     }
     return false;
   }*/
-
-
 
 }

@@ -21,6 +21,9 @@ class GameState {
   }
 
   List<dynamic> read({@required String objectId}){return matchStatus[objectId];}
+  List<dynamic> readIds({@required String objectId}){
+
+  }
 
   void delete({@required String objectId, @required String keyId}){
     matchStatus[objectId] as List<KeyMatch>..removeWhere((element){

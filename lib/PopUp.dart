@@ -13,8 +13,8 @@ class PopUp extends StatelessWidget {
   final String name;
   final Image image;
   final String imageName;
-
-  PopUp( this.totalSlots,this.slotsFilled,this.onTap,this.name,this.image,this.imageName);
+  final List<Color> colors;
+  PopUp( {this.totalSlots,this.slotsFilled,this.onTap,this.name,this.image,this.imageName,this.colors});
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +73,7 @@ class PopUp extends StatelessWidget {
                             width:30,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(30),
-                              color: (slotsFilled[i]?Colors.green[600]:Colors.grey[400]),
+                              color: (slotsFilled[i]?colors[i]:Colors.grey[400]),
                             border: Border.all(color:Colors.black,width: 0.01)),
                             child: (slotsFilled[i]?Icon(Icons.check,color: Colors.white,):null),
                           ),

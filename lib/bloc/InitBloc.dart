@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
+import 'package:flutter/material.dart';
+import '../GameState.dart';
 import 'KeyManagerBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
@@ -82,12 +84,24 @@ class InitBloc extends Bloc<InitEvent,InitState>{
     MainWidgetState.cameraIdle=new Completer();
     await MainWidgetState.cameraIdle.future;
 
-    List<dynamic> keyMatch = ResourceManager().readFromGameState(objectId: object["@ObjectId"]);
+    List<dynamic> keyMatches = ResourceManager().readFromGameState(objectId: object["@ObjectId"]);
+    List<Color> colors = [];
+    keyMatches.forEach((element) async {
+      try {
+        KeyMatch keyMatch = element;
+        Map team = await ResourceManager().teamFromUserId(keyMatch.matchmaker);
+
+        colors.add(Color.fromRGBO(team['Color'][0], team['Color'][1], team['Color'][2], 1));
+      }
+      catch (e){
+        print(e);
+      }
+    });
     //hardcode
     int slots = 3;
-
-    List<bool> matches = [for (int i=0;i<keyMatch.length;i++) true, for (int i=0;i<slots-keyMatch.length;i++) false];
-    dialogBloc.add(MarkerTap(id:object["@ObjectId"],name:object["ObjectTitle"],matches: matches,imagePath: object["ObjectImage"]));
+    print(colors);
+    List<bool> matches = [for (int i=0;i<keyMatches.length;i++) true, for (int i=0;i<slots-keyMatches.length;i++) false];
+    dialogBloc.add(MarkerTap(id:object["@ObjectId"],name:object["ObjectTitle"],matches: matches,imagePath: object["ObjectImage"],colors: colors));
 
   }
 

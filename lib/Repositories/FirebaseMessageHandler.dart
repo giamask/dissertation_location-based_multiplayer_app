@@ -8,6 +8,7 @@ import 'package:diplwmatikh_map_test/bloc/KeyManagerBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/NotificationBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/NotificationEvent.dart';
+import 'package:flutter/material.dart';
 import 'ResourceManager.dart';
 
 class FirebaseMessageHandler {
@@ -56,7 +57,7 @@ class FirebaseMessageHandler {
       if (unmatch['userId']==ResourceManager().userId.toString()) {
         backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(
             unmatch['keyId'].toString(), unmatch['position'],
-            unmatch['userId'] == ResourceManager().userId.toString(), false));
+            unmatch['userId'] == ResourceManager().userId.toString(), false,Colors.grey));
       }
       if (unmatch['showNotification']==null) notificationBloc.add(NotificationReceivedFromUnmatch(json:unmatch));
     }
@@ -66,9 +67,15 @@ class FirebaseMessageHandler {
     notificationBloc.add(NotificationReceivedFromAdmin(text:notification['text'],timestamp: notification['timestamp']));
   }
 
-  void insertAndDisplay(Map<String, dynamic> body) {
+  Future<void> insertAndDisplay(Map<String, dynamic> body) async {
     bool response = ResourceManager().gameState.insert(objectId: body['objectId'].toString(), keyId: body["keyId"].toString(), matchmaker: body["userId"].toString(),position: body["position"]);
-    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(body['keyId'].toString(),body['position'],body['userId']==ResourceManager().userId.toString(),true));
+
+    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && body['objectId']==backgroundDisplayBloc.state.props[3] && response) {
+      Map team = await ResourceManager().teamFromUserId(body['userId']);
+      backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(
+        body['keyId'].toString(), body['position'],
+        body['userId'] == ResourceManager().userId.toString(), true,Color.fromRGBO(team['Color'][0], team['Color'][1], team['Color'][2], 0.8)));
+    }
   }
 
 

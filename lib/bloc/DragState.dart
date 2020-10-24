@@ -36,10 +36,11 @@ class DragRequestInProgress extends DragState{
 
 class DragFull extends DragState{
   final Image image;
-  DragFull({@required this.image});
+  final Color color;
+  DragFull({@required this.image,@required this.color});
 
   @override
-  List<Object> get props =>[image];
+  List<Object> get props =>[image,color];
 
 }
 

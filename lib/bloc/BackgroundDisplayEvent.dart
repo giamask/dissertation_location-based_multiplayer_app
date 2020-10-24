@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:meta/meta.dart';
 
@@ -30,9 +31,10 @@ class BackgroundDisplayBecameOutdated extends BackgroundDisplayEvent{
   final bool triggeredByFriendlyUser;
   final bool correctPlacement;
   final String keyId;
-  BackgroundDisplayBecameOutdated(this.keyId,this.position,this.triggeredByFriendlyUser,this.correctPlacement);
+  final Color color;
+  BackgroundDisplayBecameOutdated(this.keyId,this.position,this.triggeredByFriendlyUser,this.correctPlacement,this.color);
   @override
-  List<Object> get props=>[position,triggeredByFriendlyUser,correctPlacement];
+  List<Object> get props=>[position,triggeredByFriendlyUser,correctPlacement,color];
 }
 
 
