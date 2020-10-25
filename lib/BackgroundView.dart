@@ -26,8 +26,6 @@ class BackgroundView extends StatefulWidget {
 
 class _BackgroundViewState extends State<BackgroundView>
     with SingleTickerProviderStateMixin {
-
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BackgroundDisplayBloc, BackgroundDisplayState>(
@@ -199,7 +197,8 @@ class _BackgroundViewState extends State<BackgroundView>
                       }),
                   Container(
                     decoration: BoxDecoration(
-                        color: Colors.transparent,),
+                      color: Colors.transparent,
+                    ),
                     child: Row(
                       children: <Widget>[
                         for (int i = 0; i < 3; i++)
@@ -214,9 +213,10 @@ class _BackgroundViewState extends State<BackgroundView>
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(18),
                                   child: BlocBuilder(
-                                    bloc: BlocProvider.of<
-                                            BackgroundDisplayBloc>(context)
-                                        .dragBlocList[i],
+                                    bloc:
+                                        BlocProvider.of<BackgroundDisplayBloc>(
+                                                context)
+                                            .dragBlocList[i],
                                     builder: (context, state) {
                                       if (state is DragEmpty) {
                                         return DragTarget<String>(
@@ -227,25 +227,23 @@ class _BackgroundViewState extends State<BackgroundView>
                                                     context)
                                                 .dragBlocList[i]
                                                 .add(DragCommitted(
-                                                    keyId: keyId,
-                                                    position: i));
+                                                    keyId: keyId, position: i));
                                           },
-                                          builder: (context, candidates,
-                                              rejected) {
+                                          builder:
+                                              (context, candidates, rejected) {
                                             if (candidates.length != 0) {
                                               return Container(
                                                 decoration: BoxDecoration(
                                                   color: Colors.black12,
                                                   borderRadius:
-                                                      BorderRadius.circular(
-                                                          18),
+                                                      BorderRadius.circular(18),
                                                   border: Border.all(
                                                       color: Colors.white,
                                                       width: 2),
                                                 ),
                                                 height: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
+                                                        .size
+                                                        .width *
                                                     0.264,
                                                 width: MediaQuery.of(context)
                                                         .size
@@ -255,8 +253,8 @@ class _BackgroundViewState extends State<BackgroundView>
                                             }
                                             return Container(
                                               height: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
+                                                      .size
+                                                      .width *
                                                   0.264,
                                               width: MediaQuery.of(context)
                                                       .size
@@ -270,8 +268,8 @@ class _BackgroundViewState extends State<BackgroundView>
                                       if (state is DragRequestInProgress) {
                                         return Container(
                                           height: MediaQuery.of(context)
-                                              .size
-                                              .width *
+                                                  .size
+                                                  .width *
                                               0.264,
                                           width: MediaQuery.of(context)
                                                   .size
@@ -279,8 +277,7 @@ class _BackgroundViewState extends State<BackgroundView>
                                               0.264,
                                           color: Colors.black12,
                                           child: Padding(
-                                            padding:
-                                                const EdgeInsets.all(28.0),
+                                            padding: const EdgeInsets.all(28.0),
                                             child: CircularProgressIndicator(
                                               backgroundColor:
                                                   Colors.purple[700],
@@ -290,23 +287,46 @@ class _BackgroundViewState extends State<BackgroundView>
                                       }
                                       if (state is DragFull) {
                                         return Container(
-                                          height: MediaQuery.of(context)
-                                              .size
-                                              .width *
-                                              0.264,
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.264,
-                                          color: Color.fromARGB(
-                                              50, 235, 235, 228),
-                                          child: BlocProvider.of<
-                                                      BackgroundDisplayBloc>(
-                                                  context)
-                                              .dragBlocList[i]
-                                              .state
-                                              .props[0],
-                                        );
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.264,
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.264,
+                                            color: Color.fromARGB(
+                                                50, 235, 235, 228),
+                                            child: Stack(
+                                              children: [
+                                                Center(
+                                                  child: BlocProvider.of<
+                                                              BackgroundDisplayBloc>(
+                                                          context)
+                                                      .dragBlocList[i]
+                                                      .state
+                                                      .props[0],
+                                                ),
+                                                Positioned(
+                                                  bottom: 8,
+                                                  right:8,
+                                                  child: ClipRRect(
+                                                    child: Container(
+                                                        color:BlocProvider.of<
+                                                        BackgroundDisplayBloc>(
+                                                        context)
+                                                        .dragBlocList[i]
+                                                        .state
+                                                        .props[1],
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.all(2.0),
+                                                          child: Icon(Icons.check,color: Colors.white,size: 20,),
+                                                        ), ),
+                                                    borderRadius: BorderRadius.circular(20),
+                                                  ),
+                                                )
+                                              ],
+                                            ));
                                       }
                                       return Container();
                                     },
@@ -314,21 +334,30 @@ class _BackgroundViewState extends State<BackgroundView>
                                 ),
                               ),
                               BlocBuilder(
-                                  bloc: BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].scoreChangeAnimation,
+                                  bloc: BlocProvider.of<BackgroundDisplayBloc>(
+                                          context)
+                                      .dragBlocList[i]
+                                      .scoreChangeAnimation,
                                   builder: (context, state) {
-
-
-                                    if (state is AnimationInProgress && i==state.position){
+                                    if (state is AnimationInProgress &&
+                                        i == state.position) {
                                       print(state);
-                                      return AnimatedScoreBubble(duration: Duration(milliseconds: 1700),
-                                      color: (state.correct)?Colors.lightGreen[700]:Colors.red[700],
-                                      points: (state.correct)?"+5":"-5",
-                                      onEnd: ()=>BlocProvider.of<BackgroundDisplayBloc>(context).dragBlocList[i].scoreChangeAnimation.add(AnimationEnded(true)),
-                                    );}
+                                      return AnimatedScoreBubble(
+                                        duration: Duration(milliseconds: 1700),
+                                        color: (state.correct)
+                                            ? Colors.lightGreen[700]
+                                            : Colors.red[700],
+                                        points: (state.correct) ? "+5" : "-5",
+                                        onEnd: () => BlocProvider.of<
+                                                BackgroundDisplayBloc>(context)
+                                            .dragBlocList[i]
+                                            .scoreChangeAnimation
+                                            .add(AnimationEnded(true)),
+                                      );
+                                    }
                                     print(state);
                                     return Container();
                                   })
-
                             ],
                           )
                       ],

@@ -40,7 +40,7 @@ class DragBloc extends Bloc<DragEvent,DragState>{
     else if (event is DragResponsePositive || event is DragFullMessageReceived){
       //keyfetchbasedonId
       print("k${event.props[0]}.jpg");
-      yield DragFull(image:Image.asset("assets/k${event.props[0]}.jpg"));
+      yield DragFull(image:Image.asset("assets/k${event.props[0]}.jpg"),color:event.props[1]);
     }
 
   }

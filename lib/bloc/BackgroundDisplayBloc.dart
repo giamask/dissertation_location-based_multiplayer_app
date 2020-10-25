@@ -21,7 +21,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
   //hardcode TODO
 
   List<List> scoreboard = [];
-  bool scoreboard_changed=true;
+  bool scoreboardChanged=true;
 
   final List<DragBloc> dragBlocList = [];
 
@@ -48,7 +48,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
       });
 
       dropDragList(slots, id);
-      fillDragList(id);
+      await fillDragList(id);
 
 
       Image image = await ResourceManager().retrieveImage(
@@ -60,7 +60,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     if (event is BackgroundDisplayChangedToScore) {
       yield BackgroundDisplayBuildInProgress();
       //TODO rebuild on change
-      if (scoreboard_changed) {
+      if (scoreboardChanged) {
         List scoreList = await ResourceManager().getScore();
         Map assetRegistry = jsonDecode(
             await ResourceManager().retrieveAssetRegistry());
@@ -82,7 +82,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     }
     if (event is BackgroundDisplayBecameOutdated) {
       if (state is ObjectDisplayBuilt) {
-          refreshDragList(event.correctPlacement,event.position,event.keyId);
+          refreshDragList(event.correctPlacement,event.position,event.keyId,event.color);
           if (event.triggeredByFriendlyUser) animateChange(event.position,event.correctPlacement);
       }
     }
@@ -95,16 +95,17 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
 
   }
 
-  void fillDragList(String id){
+  Future<void> fillDragList(String id) async {
     List<dynamic> keyMatch = ResourceManager().readFromGameState(objectId: id);
     for (int i=0;i<keyMatch.length;i++){
       KeyMatch currKey = keyMatch[i] as KeyMatch;
-      dragBlocList[currKey.position].add(DragResponsePositive(keyId: currKey.keyId));
+      Map team = await ResourceManager().teamFromUserId(currKey.matchmaker);
+      dragBlocList[currKey.position].add(DragResponsePositive(keyId: currKey.keyId,color:Color.fromRGBO(team['Color'][0], team['Color'][1], team['Color'][2], 0.85)));
     }
   }
 
-  void refreshDragList(bool correctPlacement, int position,String keyId){
-    dragBlocList[position].add(correctPlacement?DragResponsePositive(keyId:keyId):DragResponseNegative());
+  void refreshDragList(bool correctPlacement, int position,String keyId,Color color){
+    dragBlocList[position].add(correctPlacement?DragResponsePositive(keyId:keyId,color: color):DragResponseNegative());
   }
 
   void animateChange(int position, bool correctPlacement){

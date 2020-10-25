@@ -67,7 +67,7 @@ class _AnimatedMapBuilderState extends State<AnimatedMapBuilder> {
                   }(),
                   child: GoogleMap(
                     zoomControlsEnabled: false,
-                    onCameraIdle: () => (MainWidgetState.cameraIdle!= null && MainWidgetState.cameraIdle.isCompleted)?null:MainWidgetState.cameraIdle.complete(),
+                    onCameraIdle: () => (MainWidgetState.cameraIdle== null || MainWidgetState.cameraIdle.isCompleted)?null:MainWidgetState.cameraIdle.complete(),
                     markers: widget.stateProps[0],
                     rotateGesturesEnabled: false,
                     mapToolbarEnabled: false,
