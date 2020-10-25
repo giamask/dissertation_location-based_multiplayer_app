@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity/connectivity.dart';
 import 'package:diplwmatikh_map_test/GameState.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderEvent.dart';
@@ -41,6 +44,7 @@ class ResourceManager{
   }
   ResourceManager._internal(){}
 
+  ConnectivityResult connectivityState = ConnectivityResult.mobile;
   FirebaseMessaging _firebaseMessaging;
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
@@ -93,7 +97,10 @@ class ResourceManager{
     teamId=team['@TeamId'];
     teamColor = team['Color'];
     teamName = team['TeamName'];
-
+    final Connectivity _connectivity = Connectivity();
+    StreamSubscription<ConnectivityResult> _connectivitySubscription;
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
   }
 
@@ -189,8 +196,11 @@ class ResourceManager{
   }
 
 
-
-
-
-
+  void _updateConnectionStatus(ConnectivityResult event) {
+    if ((ConnectivityResult.none != event) && connectivityState == ConnectivityResult.none){
+      orderBloc.add(OrderConnectivityIssueDetected());
+    }
+    if (ConnectivityResult.none == event && connectivityState != ConnectivityResult.none){}
+    connectivityState = event;
+  }
 }

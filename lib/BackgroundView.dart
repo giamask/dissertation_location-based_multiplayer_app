@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:math';
-
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/AnimatedScoreBubble.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimationState.dart';

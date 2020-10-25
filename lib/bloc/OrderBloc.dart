@@ -23,8 +23,6 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
 
   @override
   Stream<OrderState> mapEventToState(OrderEvent event) async* {
-    print(state);
-    print(event);
     if (event is OrderMoveAdded && state is OrderUpToDate){
       if (event.move['lastMoveId'] == currentMove){
         currentMove = event.move['currentMoveId'];
@@ -45,16 +43,12 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     }
     if (event is OrderInitialized){this.add(OrderInconsistencyDetected());}
     if (event is OrderConnectivityIssueDetected){
-      await Future.delayed(Duration(seconds: 10));
       this.add(OrderInconsistencyDetected());}
+
     if (event is OrderInconsistencyDetected && state is OrderUpToDate){
       yield(OrderUpdateInProcess());
-      ResourceManager().backgroundDisplayBloc.scoreboardChanged=true;
-      ResourceManager().keyManagerBloc.add(KeyManagerSyncNeeded());
       List lostMovesList = await ResourceManager().getPastMoves(currentMove);
-      print("countdown began");
-      await Future.delayed(Duration(seconds: 20));
-      lostMovesList.forEach((element) {
+      await lostMovesList.forEach((element) async {
           Map<String,dynamic> lostMove ={};
           lostMove['timestamp']=element[6].toString();
           lostMove['id']=element[0];
@@ -70,22 +64,27 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
             ResourceManager().notificationBloc.add(NotificationReceivedFromMatch(json:lostMove));
           } else if(lostMove['type']=='unmatch'){
             BackgroundDisplayBloc backgroundDisplayBloc = ResourceManager().backgroundDisplayBloc;
-            unmatchDisplayNotify(backgroundDisplayBloc, lostMove);
+            await unmatchDisplayNotify(backgroundDisplayBloc, lostMove);
           }
       });
-      if (lostMovesList.isNotEmpty) currentMove=lostMovesList.last[0];
+      if (lostMovesList.isNotEmpty) {
+        currentMove=lostMovesList.last[0];
+        ResourceManager().backgroundDisplayBloc.scoreboardChanged=true;
+        ResourceManager().keyManagerBloc.add(KeyManagerSyncNeeded());
+      }
       yield(OrderUpToDate());
     }
 
   }
 
-  void unmatchDisplayNotify(BackgroundDisplayBloc backgroundDisplayBloc, Map move) {
+  Future<void> unmatchDisplayNotify(BackgroundDisplayBloc backgroundDisplayBloc, Map move) async{
     if (backgroundDisplayBloc.state is ObjectDisplayBuilt && move['objectId'] == backgroundDisplayBloc.state.props[3] && move['userId']==ResourceManager().userId.toString()){
         backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(
         move['keyId'].toString(), move['position'],
         move['userId'] == ResourceManager().userId.toString(), false,Colors.grey));
     }
-    if (move['showNotification']==null) ResourceManager().notificationBloc.add(NotificationReceivedFromUnmatch(json:move));
+
+    if ((await ResourceManager().teamFromUserId(move['userId']))['TeamName']==ResourceManager().teamName) ResourceManager().notificationBloc.add(NotificationReceivedFromUnmatch(json:move));
   }
 
 
