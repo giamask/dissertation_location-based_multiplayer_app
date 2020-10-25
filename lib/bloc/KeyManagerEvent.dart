@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 
 abstract class KeyManagerEvent extends Equatable {
   const KeyManagerEvent();
-
   List<Object> get props=>[];
 }
 
@@ -20,7 +19,11 @@ class KeyManagerKeyMatch extends KeyManagerEvent{
 
 class KeyManagerListInitialization extends KeyManagerEvent{}
 
-
+class KeyManagerSyncNeeded extends KeyManagerEvent{
+  final int team=0 ;
+  @override
+  List<Object> get props => [team];
+}
 
 
 

@@ -7,6 +7,7 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
+import 'bloc/OrderBloc.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:draggable_widget/draggable_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -39,6 +40,9 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Google Maps Demo',
         theme: Theme.of(context).copyWith(accentColor: Colors.black),
         home: MultiBlocProvider(providers: [
+          BlocProvider<OrderBloc>(
+            create:(BuildContext context)=> OrderBloc(),
+          ),
           BlocProvider<AnimatorBloc>(
             create: (BuildContext context) => AnimatorBloc(),
           ),
@@ -55,7 +59,8 @@ class MyApp extends StatelessWidget {
             create: (BuildContext context) => InitBloc(
                 BlocProvider.of<BackgroundDisplayBloc>(context),
                 BlocProvider.of<KeyManagerBloc>(context),
-                BlocProvider.of<NotificationBloc>(context)),
+                BlocProvider.of<NotificationBloc>(context),
+            BlocProvider.of<OrderBloc>(context)),
           ),
           BlocProvider<MenuBloc>(
             create: (BuildContext context) => MenuBloc(

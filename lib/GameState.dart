@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 class GameState {
   Map<String,dynamic> objectsJson;
   Map matchStatus={};
-  int currentMoveId=0;
 
 
   GameState(this.objectsJson){
@@ -21,9 +20,7 @@ class GameState {
   }
 
   List<dynamic> read({@required String objectId}){return matchStatus[objectId];}
-  List<dynamic> readIds({@required String objectId}){
 
-  }
 
   void delete({@required String objectId, @required String keyId}){
     matchStatus[objectId] as List<KeyMatch>..removeWhere((element){

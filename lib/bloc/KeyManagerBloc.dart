@@ -24,7 +24,7 @@ class KeyManagerBloc extends Bloc<KeyManagerEvent, KeyManagerState> {
   @override
   Stream<KeyManagerState> mapEventToState(KeyManagerEvent event) async* {
 
-    if (event is KeyManagerKeyMatch && keyList.contains(event.props[2]) && !(state is KeyManagerUninitialized)) {
+    if (((event is KeyManagerKeyMatch && keyList.contains(event.props[2])) || (event is KeyManagerSyncNeeded)) && !(state is KeyManagerUninitialized)) {
       yield(KeyManagerListUpdateInProgress());
       List<int> newKeyList = await ResourceManager().getKeys();
       List<int> elementsToRemoveList = keyList.where((element) => !newKeyList.contains(element)).toList();
@@ -55,7 +55,6 @@ class KeyManagerBloc extends Bloc<KeyManagerEvent, KeyManagerState> {
 
     if (event is KeyManagerListInitialization && state is KeyManagerUninitialized) {
       List<int> newKeyList = await ResourceManager().getKeys();
-//      List<int> newKeyList = [1,2,3,4,5];
       keyList = newKeyList;
       yield (KeyManagerListUpdated());
     }

@@ -1,4 +1,6 @@
 import 'package:diplwmatikh_map_test/GameState.dart';
+import 'package:diplwmatikh_map_test/bloc/OrderBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/OrderEvent.dart';
 import 'AssetRegistryManager.dart';
 import 'FirebaseMessageHandler.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
@@ -43,6 +45,7 @@ class ResourceManager{
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
   KeyManagerBloc keyManagerBloc;
+  OrderBloc orderBloc;
   NotificationBloc notificationBloc;
   GameState gameState;
   int userId=1;
@@ -52,7 +55,7 @@ class ResourceManager{
   FirebaseMessageHandler firebaseMessageHandler;
   AssetRegistryManager assetRegistryManager;
   //Initialization
-  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc) async{
+  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc,OrderBloc orderBloc) async{
     assetRegistryManager = AssetRegistryManager();
     firebaseMessageHandler= FirebaseMessageHandler(backgroundDisplayBloc,keyManagerBloc,notificationBloc);
     //firebase init
@@ -72,7 +75,8 @@ class ResourceManager{
     this.backgroundDisplayBloc=backgroundDisplayBloc;
 
     this.notificationBloc = notificationBloc;
-
+    this.orderBloc = orderBloc;
+    firebaseMessageHandler.setUpListener();
     //assetRegistry init
     int version = await assetRegistryManager.getVersionNumber();
     http.Response response= await  _getRequest("/init/1?version=$version");
@@ -106,25 +110,21 @@ class ResourceManager{
     http.Response response= await _getRequest(extension);
     Map responseJson = json.decode(response.body);
     bool needSync = true;
-
-    if (responseJson["outcome"].contains("valid move"))needSync=false;
-    if (needSync) getPastMoves();
-
+    if (responseJson["outcome"].contains("valid move")) needSync=false;
+    if (needSync) orderBloc.add(OrderInconsistencyDetected());
     return response.body;
   }
 
-  void getPastMoves() async{
-    http.Response response= await _getRequest("/past_moves/");
-//    print(response.body);
-//    print(response.body.runtimeType);
-
+  Future<List> getPastMoves(int lastKnownMove) async{
+    http.Response response= await _getRequest("/past_moves/1?move="+lastKnownMove.toString());
+    return(jsonDecode(response.body));
   }
 
   Future<List> getScore() async{
     String parameters = "/score/1";
     http.Response response = await _getRequest(parameters);
     try {
-      backgroundDisplayBloc.scoreboard_changed = false;
+      backgroundDisplayBloc.scoreboardChanged = false;
       return (jsonDecode(response.body));
     }
     catch (e) {print(e);}
@@ -178,16 +178,9 @@ class ResourceManager{
   }
 
 
-  //Firebase Message Receiver
 
-
-
-  void updateCounter(Map<String,dynamic> body){
-//    if (body['lastMoveId']<=_gameState.currentMoveId){
-//      _gameState.currentMoveId=body['currentMoveId'];
-//      return;
-//    }
-//    getPastMoves();
+  void notifyOrderManager(Map<String,dynamic> body)  {
+    orderBloc.add(OrderMoveAdded(move:body));
   }
 
   List<dynamic> readFromGameState({@required objectId}){

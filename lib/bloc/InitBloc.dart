@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../GameState.dart';
 import 'KeyManagerBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
+import 'OrderBloc.dart';
+import 'OrderEvent.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:diplwmatikh_map_test/main.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -21,8 +23,9 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   final BackgroundDisplayBloc backgroundDisplayBloc;
   final KeyManagerBloc keyManagerBloc;
   final NotificationBloc notificationBloc;
+  final OrderBloc orderBloc;
 
-  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc);
+  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc);
 
   @override
   Future<void> close() {
@@ -35,12 +38,13 @@ class InitBloc extends Bloc<InitEvent,InitState>{
 
   @override
   Stream<InitState> mapEventToState(InitEvent event) async*{
-    if (event is GameInitialized) {
+    if (event is GameInitialized && !(state is Initialized)) {
       ResourceManager resourceManager = ResourceManager();
-      await resourceManager.init(backgroundDisplayBloc,keyManagerBloc,notificationBloc);
+      await resourceManager.init(backgroundDisplayBloc,keyManagerBloc,notificationBloc,orderBloc);
       String assetRegistry = await resourceManager.retrieveAssetRegistry();
       Set<Marker> markers = objectMarkersFromJson(assetRegistry);
       keyManagerBloc.add(KeyManagerListInitialization());
+      orderBloc.add(OrderInitialized());
       yield Initialized(markers: markers,controller: Completer());
     }
   }

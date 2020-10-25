@@ -21,7 +21,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
   //hardcode TODO
 
   List<List> scoreboard = [];
-  bool scoreboard_changed=true;
+  bool scoreboardChanged=true;
 
   final List<DragBloc> dragBlocList = [];
 
@@ -60,7 +60,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     if (event is BackgroundDisplayChangedToScore) {
       yield BackgroundDisplayBuildInProgress();
       //TODO rebuild on change
-      if (scoreboard_changed) {
+      if (scoreboardChanged) {
         List scoreList = await ResourceManager().getScore();
         Map assetRegistry = jsonDecode(
             await ResourceManager().retrieveAssetRegistry());
