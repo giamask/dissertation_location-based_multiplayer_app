@@ -42,11 +42,16 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
       String id = event.props[0];
       Map json = jsonDecode(await ResourceManager().retrieveAssetRegistry());
       List jsonObjects = json["joumerka"]["ObjectList"];
-      Map object = jsonObjects.firstWhere((element) {
-        if (element["@ObjectId"] == id) return true;
-        return false;
-      });
-
+      Map object;
+      try {
+        object = jsonObjects.firstWhere((element) {
+          if (element["@ObjectId"] == id) return true;
+          return false;
+        });
+      }
+      catch (e){
+        print(e.toString());
+      }
       dropDragList(slots, id);
       await fillDragList(id);
 

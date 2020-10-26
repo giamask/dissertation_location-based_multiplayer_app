@@ -3,12 +3,14 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/ScanEvent.dart';
 import 'package:flutter/material.dart';
 import '../GameState.dart';
 import 'KeyManagerBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'OrderBloc.dart';
 import 'OrderEvent.dart';
+import 'ScanBloc.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:diplwmatikh_map_test/main.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -24,8 +26,9 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   final KeyManagerBloc keyManagerBloc;
   final NotificationBloc notificationBloc;
   final OrderBloc orderBloc;
+  final ScanBloc scanBloc;
 
-  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc);
+  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc,this.scanBloc);
 
   @override
   Future<void> close() {
@@ -45,6 +48,7 @@ class InitBloc extends Bloc<InitEvent,InitState>{
       Set<Marker> markers = objectMarkersFromJson(assetRegistry);
       keyManagerBloc.add(KeyManagerListInitialization());
       orderBloc.add(OrderInitialized());
+      scanBloc.add(ScanInitialized());
       yield Initialized(markers: markers,controller: Completer());
     }
   }
@@ -103,7 +107,6 @@ class InitBloc extends Bloc<InitEvent,InitState>{
     });
     //hardcode
     int slots = 3;
-    print(colors);
     List<bool> matches = [for (int i=0;i<keyMatches.length;i++) true, for (int i=0;i<slots-keyMatches.length;i++) false];
     dialogBloc.add(MarkerTap(id:object["@ObjectId"],name:object["ObjectTitle"],matches: matches,imagePath: object["ObjectImage"],colors: colors));
 

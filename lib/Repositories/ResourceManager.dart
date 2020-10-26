@@ -4,6 +4,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:diplwmatikh_map_test/GameState.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/ScanBloc.dart';
 import 'AssetRegistryManager.dart';
 import 'FirebaseMessageHandler.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
@@ -53,6 +54,7 @@ class ResourceManager{
   NotificationBloc notificationBloc;
   GameState gameState;
   int userId=1;
+  bool cheatMode=false;
   int teamId;
   List teamColor;
   String teamName;
@@ -135,6 +137,31 @@ class ResourceManager{
       return (jsonDecode(response.body));
     }
     catch (e) {print(e);}
+  }
+
+  Future<void> addScan({@required int objectId,DateTime dateTime }) async{
+    String parameters = "/scan/1?userId=$userId&objectId=$objectId&timestamp=$dateTime";
+    http.Response response = await _getRequest(parameters);
+    try{
+      if (!response.body.contains("confirm")) throw Exception("Scan did not register to server.");
+    }
+    catch(e){
+      print (e);
+    }
+  }
+
+  Future<List<Scan>> getScans() async{
+    String parameters = "/past_scans/1?userId=$userId";
+    http.Response response = await _getRequest(parameters);
+    List<Scan> scanList = [];
+    try{
+      Map jsonResponse = (jsonDecode(response.body));
+      jsonResponse.forEach((key, value) { scanList.add(Scan(int.parse(key),DateTime.parse(value)));});
+    }
+    catch(e){
+      print (e);
+    }
+    return scanList;
   }
 
   Future<List<int>> getKeys() async {

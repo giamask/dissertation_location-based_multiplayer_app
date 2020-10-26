@@ -7,7 +7,11 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
+import 'package:diplwmatikh_map_test/bloc/ScanEvent.dart';
+import 'package:toast/toast.dart';
+import 'GameState.dart';
 import 'bloc/OrderBloc.dart';
+import 'bloc/ScanBloc.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:draggable_widget/draggable_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,7 +45,10 @@ class MyApp extends StatelessWidget {
         theme: Theme.of(context).copyWith(accentColor: Colors.black),
         home: MultiBlocProvider(providers: [
           BlocProvider<OrderBloc>(
-            create:(BuildContext context)=> OrderBloc(),
+            create: (BuildContext context) => OrderBloc(),
+          ),
+          BlocProvider<ScanBloc>(
+            create: (BuildContext context) => ScanBloc(),
           ),
           BlocProvider<AnimatorBloc>(
             create: (BuildContext context) => AnimatorBloc(),
@@ -60,7 +67,8 @@ class MyApp extends StatelessWidget {
                 BlocProvider.of<BackgroundDisplayBloc>(context),
                 BlocProvider.of<KeyManagerBloc>(context),
                 BlocProvider.of<NotificationBloc>(context),
-            BlocProvider.of<OrderBloc>(context)),
+                BlocProvider.of<OrderBloc>(context),
+                BlocProvider.of<ScanBloc>(context)),
           ),
           BlocProvider<MenuBloc>(
             create: (BuildContext context) => MenuBloc(
@@ -176,13 +184,15 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
             BlocListener(
                 bloc: BlocProvider.of<InitBloc>(context).dialogBloc,
                 listener: (context, state) {
+                  ScanBloc scanBloc = BlocProvider.of<ScanBloc>(context);
                   BackgroundDisplayBloc displayBloc =
                       BlocProvider.of<BackgroundDisplayBloc>(context);
                   AnimatorBloc animatorBloc =
                       BlocProvider.of<AnimatorBloc>(context);
+                  ScaffoldState scaffold = Scaffold.of(context);
                   if (state is Ready) {
                     showGeneralDialog(
-                        barrierColor: Colors.black26,
+                        barrierColor: Colors.black38,
                         context: context,
                         barrierLabel: "Label",
                         transitionDuration: Duration(milliseconds: 100),
@@ -205,14 +215,28 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                                         width: PopUp.WIDTH,
                                         child: Material(
                                             color: Colors.transparent,
-                                            child: PopUp(colors: state.props[4],totalSlots: 3, slotsFilled: state.props[2], onTap: () {
-                                              Navigator.of(context).pop();
-                                              displayBloc.add(
-                                                  BackgroundDisplayChangedToObject(
-                                                      id: state.props[0]));
-                                              animatorBloc
-                                                  .add(AnimatorMapShrunk());
-                                            }, name: state.props[1],image: state.props[5],
+                                            child: PopUp(
+                                                active: scanBloc.isAvailable(
+                                                    int.parse(state.props[0])),
+                                                colors: state.props[4],
+                                                totalSlots: 3,
+                                                slotsFilled: state.props[2],
+                                                onTap: () {
+                                                  if (!scanBloc.isAvailable(
+                                                      int.parse(
+                                                          state.props[0]))) {
+                                                    Toast.show("Βρες τον QR κωδικό της τοποθεσίας για να την ξεκλειδώσεις!", context,duration: 3, );
+                                                    return;
+                                                  }
+                                                  Navigator.of(context).pop();
+                                                  displayBloc.add(
+                                                      BackgroundDisplayChangedToObject(
+                                                          id: state.props[0]));
+                                                  animatorBloc
+                                                      .add(AnimatorMapShrunk());
+                                                },
+                                                name: state.props[1],
+                                                image: state.props[5],
                                                 imageName: state.props[3])))),
                               )
                             ],
@@ -341,8 +365,9 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                     top: 78,
                     right: 65,
                     child: CustomFloatingButton(
-                      onTap: ()  {
-                        print(ResourceManager().orderBloc.currentMove);
+                      onTap: () {
+                        BlocProvider.of<ScanBloc>(context).cheatMode =
+                            !BlocProvider.of<ScanBloc>(context).cheatMode;
                       },
                       icon: Icons.people,
                       color: Colors.purple[700],
@@ -364,7 +389,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                       image: "assets/QRicon.png",
                       color: Colors.purple[700],
                       size: 50,
-                      onTap: qrScan,
+                      onTap: () => qrScan(context),
                     ),
                   );
                 }
@@ -377,8 +402,21 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
     );
   }
 
-  void qrScan() async {
-    String photoScanResult = await scanner.scan();
+  void qrScan(BuildContext context) async {
+    String objectId = await scanner.scan();
+    try {
+      Map<dynamic, dynamic> matchStatus =
+          ResourceManager().gameState.matchStatus;
+      if (!matchStatus.keys.contains(objectId))
+        throw Exception("Object doesn't exist in the current game context.");
+      BlocProvider.of<ScanBloc>(context)
+          .add(ScanExecuted(Scan(int.parse(objectId), DateTime.now())));
+      BlocProvider.of<BackgroundDisplayBloc>(context)
+          .add(BackgroundDisplayChangedToObject(id: objectId));
+      BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapShrunk());
+    } catch (e) {
+      print(e);
+    }
   }
 
 // Asks permission to use location, returns true if given.
