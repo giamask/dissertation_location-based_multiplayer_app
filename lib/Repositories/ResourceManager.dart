@@ -103,7 +103,6 @@ class ResourceManager{
     StreamSubscription<ConnectivityResult> _connectivitySubscription;
     _connectivitySubscription =
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
-
   }
 
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async => firebaseMessageHandler.messageReceiver(messageReceived);
@@ -177,6 +176,7 @@ class ResourceManager{
     }
   }
 
+
   //ImageRetrieval
   Future<Image> retrieveImage(String imageName) async{
     final String path = await assetRegistryManager.localPath;
@@ -230,4 +230,5 @@ class ResourceManager{
     if (ConnectivityResult.none == event && connectivityState != ConnectivityResult.none){}
     connectivityState = event;
   }
+
 }
