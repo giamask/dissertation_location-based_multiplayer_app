@@ -29,7 +29,7 @@
 .pub-cache/
 .pub/
 /build/
-
+/android/app/src/main/AnrdoidManifest.xml
 
 # Web related
 lib/generated_plugin_registrant.dart

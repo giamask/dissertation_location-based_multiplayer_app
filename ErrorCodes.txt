@@ -1,0 +1,15 @@
+1: Το InitBloc δεν ξεκίνησε σωστά
+2: Ο server δεν απάντησε κατα το initialization του ResourceManager
+20: H τοποθεσια που προσπαθει να ανοιξει ο παικτης δεν ειναι στο αρχειο του παιχνιδιου
+21: Η τοποθεσία δεν ανήκει στο παιχνίδι
+30: Αδεια για χρηση της καμερας
+31: Αδεια για χρηση της τοποθεσίας
+40: Camera map animation failed
+50: DragTarget firebase timeout
+51: addMove get request timeout
+52: pastMoves get request timeout
+53: getScore get request timeout
+54: addScan get request timeout
+55: getImage get request timeout
+56: Διακοπή σύνδεσης δικτύου
+

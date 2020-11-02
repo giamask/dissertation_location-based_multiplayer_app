@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:diplwmatikh_map_test/GameState.dart';
+import 'package:diplwmatikh_map_test/bloc/ErrorBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/ErrorEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/ScanBloc.dart';
 import 'AssetRegistryManager.dart';
 import 'FirebaseMessageHandler.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
@@ -52,41 +55,47 @@ class ResourceManager{
   OrderBloc orderBloc;
   NotificationBloc notificationBloc;
   GameState gameState;
+  ErrorBloc errorBloc;
   int userId=1;
+  StreamSubscription<ConnectivityResult> connectivitySubscription;
+  bool cheatMode=false;
   int teamId;
   List teamColor;
   String teamName;
   FirebaseMessageHandler firebaseMessageHandler;
   AssetRegistryManager assetRegistryManager;
   //Initialization
-  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc,OrderBloc orderBloc) async{
+  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc,OrderBloc orderBloc,ErrorBloc errorBloc) async{
     assetRegistryManager = AssetRegistryManager();
     firebaseMessageHandler= FirebaseMessageHandler(backgroundDisplayBloc,keyManagerBloc,notificationBloc);
     //firebase init
+    this.keyManagerBloc=keyManagerBloc;
+    this.backgroundDisplayBloc=backgroundDisplayBloc;
+    this.notificationBloc = notificationBloc;
+    this.orderBloc = orderBloc;
+    this.errorBloc=errorBloc;
+
     _firebaseMessaging =FirebaseMessaging()..configure(
       onMessage: (message) async {_onFirebaseMessage(message);},
     );
     _firebaseMessaging.requestNotificationPermissions();
     _firebaseMessaging.subscribeToTopic("session6");
 
-//    TODO close them on closing the game instance. Uncommenting might be enough
-    //KeyManagerBloc init
-//    if (this.keyManagerBloc!=null) this.keyManagerBloc.close();
-    this.keyManagerBloc=keyManagerBloc;
 
-    //BackgroundDisplayBloc init
-//    if (this.backgroundDisplayBloc!=null) this.backgroundDisplayBloc.close();
-    this.backgroundDisplayBloc=backgroundDisplayBloc;
-
-    this.notificationBloc = notificationBloc;
-    this.orderBloc = orderBloc;
     firebaseMessageHandler.setUpListener();
     //assetRegistry init
     int version = await assetRegistryManager.getVersionNumber();
-    http.Response response= await  _getRequest("/init/1?version=$version");
-    if (response.statusCode!=HttpStatus.ok){
-      status=Status.error;
-      return;
+    http.Response response;
+    try {
+      response = await _getRequest("/init/1?version=$version");
+      if (response.statusCode != HttpStatus.ok) {
+        status = Status.error;
+        throw SocketException("");
+      }
+    }
+    catch(e){
+      throw ErrorFatalThrown(CustomError(id: 2,
+          message: "Δεν υπήρξε απάντηση απο τον server. Ελέγξτε την σύνδεση σας στο internet και προσπαθήστε ξανά."));
     }
     await createAssetDirectory();
     if(!(response.body.contains("confirm"))) assetRegistryManager.replaceAssetRegistry(response.body);
@@ -98,10 +107,9 @@ class ResourceManager{
     teamColor = team['Color'];
     teamName = team['TeamName'];
     final Connectivity _connectivity = Connectivity();
-    StreamSubscription<ConnectivityResult> _connectivitySubscription;
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
+    connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   void _onFirebaseMessage(Map<String,dynamic> messageReceived) async => firebaseMessageHandler.messageReceiver(messageReceived);
@@ -113,28 +121,70 @@ class ResourceManager{
     String extension="/move?objectId=${objectId.toString()}&userId=1&sessionId=1&type=$type";
     extension += "&keyId=${(type!="scan")?keyId:"null"}";
     if (position!=null) extension +="&position=$position";
+    try {
+      http.Response response = await _getRequest(extension);
+      Map responseJson = json.decode(response.body);
 
-    http.Response response= await _getRequest(extension);
-    Map responseJson = json.decode(response.body);
-    bool needSync = true;
-    if (responseJson["outcome"].contains("valid move")) needSync=false;
-    if (needSync) orderBloc.add(OrderInconsistencyDetected());
-    return response.body;
+      if (!responseJson["outcome"].contains("valid move")) {
+        orderBloc.add(OrderInconsistencyDetected());
+        throw SocketException("");
+      }
+      return response.body;
+    }
+    on SocketException catch (ce){
+      throw ErrorThrown(CustomError(id: 51,
+          message: "Υπήρξε πρόβλημα με την αντιστοίχηση σας. Ελέγξτε την σύνδεση σας στο internet και προσπαθήστε ξανά."));
+    }
+
   }
 
   Future<List> getPastMoves(int lastKnownMove) async{
-    http.Response response= await _getRequest("/past_moves/1?move="+lastKnownMove.toString());
-    return(jsonDecode(response.body));
+    try {
+      http.Response response = await _getRequest(
+          "/past_moves/1?move=" + lastKnownMove.toString());
+      return (jsonDecode(response.body));
+    }
+    on SocketException{
+      throw ErrorThrown(CustomError(id: 52,
+          message: "Αδυναμία επικοινωνίας με τον server. Ελέγξτε την σύνδεση σας στο internet."));
+    }
   }
 
   Future<List> getScore() async{
     String parameters = "/score/1";
-    http.Response response = await _getRequest(parameters);
     try {
+      http.Response response = await _getRequest(parameters);
       backgroundDisplayBloc.scoreboardChanged = false;
       return (jsonDecode(response.body));
     }
-    catch (e) {print(e);}
+    on SocketException {
+      throw ErrorThrown(CustomError(id: 53,
+          message: "Αδυναμία επικοινωνίας με τον server. Ελέγξτε την σύνδεση σας στο internet."));
+    }
+  }
+
+  Future<void> addScan({@required int objectId,DateTime dateTime }) async{
+    String parameters = "/scan/1?userId=$userId&objectId=$objectId&timestamp=$dateTime";
+    try{
+      http.Response response = await _getRequest(parameters);
+      if (!response.body.contains("confirm")) throw SocketException("");
+    }
+    on SocketException{
+      throw ErrorThrown(CustomError(id: 54,
+          message: "Αδυναμία επικοινωνίας με τον server. Ελέγξτε την σύνδεση σας στο internet."));
+    }
+  }
+
+  Future<List<Scan>> getScans() async{
+    String parameters = "/past_scans/1?userId=$userId";
+    http.Response response = await _getRequest(parameters);
+    List<Scan> scanList = [];
+    try{
+      Map jsonResponse = (jsonDecode(response.body));
+      jsonResponse.forEach((key, value) { scanList.add(Scan(int.parse(key),DateTime.parse(value)));});
+    }
+    catch(e){}
+    return scanList;
   }
 
   Future<List<int>> getKeys() async {
@@ -150,8 +200,9 @@ class ResourceManager{
     }
   }
 
+
   //ImageRetrieval
-  Future<Image> retrieveImage(String imageName) async{
+  Future<Image> getImage(String imageName) async{
     final String path = await assetRegistryManager.localPath;
     File imageFile=File("$path/assets/$imageName");
 
@@ -159,10 +210,17 @@ class ResourceManager{
       if (imageFile.readAsBytesSync().isEmpty) throw FileSystemException();
       return Image.file(imageFile);
     }
-    on FileSystemException catch(e){
-      http.Response response= await  _getRequest("/image/$imageName");
-      imageFile.writeAsBytesSync(response.bodyBytes);
-      return Image.file(imageFile);
+    on FileSystemException catch(e) {
+      try {
+        http.Response response = await _getRequest("/image/$imageName");
+        if (response.body.isEmpty) throw SocketException("");
+        imageFile.writeAsBytesSync(response.bodyBytes);
+        return Image.file(imageFile);
+      }
+      on SocketException catch (se){
+        throw ErrorThrown(CustomError(id: 55,
+            message: "Αδυναμία φόρτωσης εικόνας. Ελέγξτε την σύνδεση σας στο internet."));
+      }
     }
   }
 
@@ -200,7 +258,10 @@ class ResourceManager{
     if ((ConnectivityResult.none != event) && connectivityState == ConnectivityResult.none){
       orderBloc.add(OrderConnectivityIssueDetected());
     }
-    if (ConnectivityResult.none == event && connectivityState != ConnectivityResult.none){}
+    if (ConnectivityResult.none == event && connectivityState != ConnectivityResult.none){
+      errorBloc.add(ErrorThrown(CustomError(id:56,message: "Ανιχνεύθηκε διακοπή της σύνδεσης σας στο διαδίκτυο. Συνίσταται η αποκατάσταση της πριν συνεχίσετε.")));
+    }
     connectivityState = event;
   }
+
 }

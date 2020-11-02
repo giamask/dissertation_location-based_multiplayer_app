@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:diplwmatikh_map_test/ZoomableInkwell.dart';
 import 'package:diplwmatikh_map_test/bloc/NotificationEvent.dart';
+import 'bloc/ErrorEvent.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,6 @@ class NotificationTile extends StatefulWidget {
   final RichText text;
   final List<String> assets;
   final Function onDelete;
-
   final Color color;
   NotificationTile(
       {Key key,
@@ -66,7 +66,9 @@ class _NotificationTileState extends State<NotificationTile>{
                   padding: const EdgeInsets.only(bottom:3),
                   constraints: const BoxConstraints(maxHeight: 100),
                   child: FutureBuilder(
-                    future:Future.wait([ResourceManager().retrieveImage(widget.assets[0]),ResourceManager().retrieveImage(widget.assets[1])]),
+                    future:Future.wait([
+                      ResourceManager().getImage(widget.assets[0]),
+                      ResourceManager().getImage(widget.assets[1])]),
                     builder: (context, snapshot) {
                       return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -10,11 +10,12 @@ class PopUp extends StatelessWidget {
   static const WIDTH=200.0;
   static const HEIGHT=153.0;
   final Function onTap;
+  final bool active;
   final String name;
   final Image image;
   final String imageName;
   final List<Color> colors;
-  PopUp( {this.totalSlots,this.slotsFilled,this.onTap,this.name,this.image,this.imageName,this.colors});
+  PopUp( {this.totalSlots,this.slotsFilled,this.onTap,this.name,this.image,this.imageName,this.colors,this.active});
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +86,7 @@ class PopUp extends StatelessWidget {
             )
           ),
         ),
-        Positioned(top:105,left: WIDTH/2 - 138/2 ,child: FloatingActionButton.extended(onPressed: onTap, label: Text("Λεπτομέρειες"),backgroundColor: Colors.blue[900],) ,)
+        Positioned(top:105,left: WIDTH/2 - 138/2 ,child: FloatingActionButton.extended(onPressed: onTap, label: Text("Λεπτομέρειες"),backgroundColor: active?Colors.blue[900]:Colors.grey[600],) ,)
       ],
     );
   }
