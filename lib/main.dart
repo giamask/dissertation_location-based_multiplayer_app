@@ -1,15 +1,14 @@
-import 'dart:convert';
 import 'dart:ui';
 import 'package:diplwmatikh_map_test/BackgroundView.dart';
 import 'package:diplwmatikh_map_test/bloc/AnimatorEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/InitEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayEvent.dart';
-import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/MenuState.dart';
 import 'package:diplwmatikh_map_test/bloc/ScanEvent.dart';
 import 'package:toast/toast.dart';
-import 'GameState.dart';
+import 'bloc/ErrorBloc.dart';
+import 'bloc/ErrorEvent.dart';
 import 'bloc/OrderBloc.dart';
 import 'bloc/ScanBloc.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
@@ -33,8 +32,7 @@ import 'bloc/BackgroundDisplayBloc.dart';
 import 'bloc/KeyManagerBloc.dart';
 import 'bloc/MenuBloc.dart';
 import 'bloc/NotificationBloc.dart';
-import 'bloc/NotificationEvent.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -44,17 +42,20 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Google Maps Demo',
         theme: Theme.of(context).copyWith(accentColor: Colors.black),
         home: MultiBlocProvider(providers: [
+          BlocProvider<ErrorBloc>(
+            create: (BuildContext context) => ErrorBloc(context),
+          ),
           BlocProvider<OrderBloc>(
-            create: (BuildContext context) => OrderBloc(),
+            create: (BuildContext context) => OrderBloc(context),
           ),
           BlocProvider<ScanBloc>(
-            create: (BuildContext context) => ScanBloc(),
+            create: (BuildContext context) => ScanBloc(context),
           ),
           BlocProvider<AnimatorBloc>(
             create: (BuildContext context) => AnimatorBloc(),
           ),
           BlocProvider<BackgroundDisplayBloc>(
-            create: (BuildContext context) => BackgroundDisplayBloc(),
+            create: (BuildContext context) => BackgroundDisplayBloc(context),
           ),
           BlocProvider<KeyManagerBloc>(
             create: (BuildContext context) => KeyManagerBloc(),
@@ -68,7 +69,9 @@ class MyApp extends StatelessWidget {
                 BlocProvider.of<KeyManagerBloc>(context),
                 BlocProvider.of<NotificationBloc>(context),
                 BlocProvider.of<OrderBloc>(context),
-                BlocProvider.of<ScanBloc>(context)),
+                BlocProvider.of<ScanBloc>(context),
+                context),
+
           ),
           BlocProvider<MenuBloc>(
             create: (BuildContext context) => MenuBloc(
@@ -128,6 +131,10 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
     BlocProvider.of<BackgroundDisplayBloc>(context).close();
     BlocProvider.of<MenuBloc>(context).close();
     BlocProvider.of<NotificationBloc>(context).close();
+    BlocProvider.of<OrderBloc>(context).close();
+    BlocProvider.of<ScanBloc>(context).close();
+    BlocProvider.of<ErrorBloc>(context).close();
+    ResourceManager().connectivitySubscription.cancel();
   }
 
   @override
@@ -157,19 +164,13 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                       BlocProvider.of<AnimatorBloc>(context).dragController,
                   topMargin: 50,
                   bottomMargin: 237,
-                  child: Opacity(
-                    opacity: (BlocProvider.of<AnimatorBloc>(context).state
-                            is MapView)
-                        ? 0.0
-                        : 1.0,
-                    child: GestureDetector(
-                      child: Image.asset(
-                        "assets/map_icon.png",
-                        height: 60,
-                      ),
-                      onTap: () => BlocProvider.of<AnimatorBloc>(context)
-                          .add(AnimatorMapExpanded()),
+                  child: GestureDetector(
+                    child: Image.asset(
+                      "assets/map_icon.png",
+                      height: 60,
                     ),
+                    onTap: () => BlocProvider.of<AnimatorBloc>(context)
+                        .add(AnimatorMapExpanded()),
                   ),
                 );
               },
@@ -368,6 +369,7 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
                       onTap: () {
                         BlocProvider.of<ScanBloc>(context).cheatMode =
                             !BlocProvider.of<ScanBloc>(context).cheatMode;
+                        BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(message: "Test",id:0),));
                       },
                       icon: Icons.people,
                       color: Colors.purple[700],
@@ -403,31 +405,32 @@ class MainWidgetState extends State<MainWidget> with TickerProviderStateMixin {
   }
 
   void qrScan(BuildContext context) async {
-    String objectId = await scanner.scan();
+    String objectId ;
     try {
+      objectId = await scanner.scan();
+    }
+    catch(e){
+      BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(id:30,message:"To QR scanner δεν λειτουργεί σωστά. Δοκιμάστε να επανεκκινήσετε την εφαρμογή και να δώσετε δικαίωμα πρόσβασης στην κάμερα.")));
+      return;
+    }
+
       Map<dynamic, dynamic> matchStatus =
           ResourceManager().gameState.matchStatus;
-      if (!matchStatus.keys.contains(objectId))
-        throw Exception("Object doesn't exist in the current game context.");
+      if (!matchStatus.keys.contains(objectId)) {
+        BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(id: 21,
+            message: "Η τοποθεσία που σκανάρατε φαίνεται να μην ανήκει σε αυτο το παιχνίδι.")));
+        return;
+      }
       BlocProvider.of<ScanBloc>(context)
           .add(ScanExecuted(Scan(int.parse(objectId), DateTime.now())));
       BlocProvider.of<BackgroundDisplayBloc>(context)
           .add(BackgroundDisplayChangedToObject(id: objectId));
       BlocProvider.of<AnimatorBloc>(context).add(AnimatorMapShrunk());
-    } catch (e) {
-      print(e);
-    }
+
   }
 
 // Asks permission to use location, returns true if given.
-// import 'package:permission_handler/permission_handler.dart';
-  /* Future<bool> permissionManager() async {
-    Map<PermissionGroup, PermissionStatus> permission =
-        await PermissionHandler().requestPermissions([PermissionGroup.locationWhenInUse]);
-    if (permission[PermissionGroup.locationWhenInUse]== PermissionStatus.granted){
-      return true;
-    }
-    return false;
-  }*/
+
+
 
 }

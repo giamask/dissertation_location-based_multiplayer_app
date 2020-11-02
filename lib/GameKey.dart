@@ -1,22 +1,33 @@
 
+import 'dart:async';
+
+
 import 'package:flutter/widgets.dart';
+
+import 'bloc/ErrorEvent.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 
 class GameKey{
   String id;
   String desc;
   String imageName;
-  Image image;
+  Completer<Image> image = Completer<Image>();
 
-  GameKey({this.id,this.desc,this.imageName}){
-    try{
-      // Retrieve image
+  GameKey({this.id,this.desc,this.imageName}) {
+    loadImage();
+  }
 
-      //test
-
-      image=Image.asset("assets/${imageName}");
+  void loadImage() async{
+    try {
+      image.complete(await ResourceManager().getImage(imageName));
     }
-    catch (e){
-      print("CANNOT FIND IMAGE");
+    on ErrorThrown catch(et){
+      startTimer();
     }
+  }
+
+  void startTimer() async{
+    await Future.delayed(Duration(seconds: 10));
+    loadImage();
   }
 }

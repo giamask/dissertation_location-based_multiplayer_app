@@ -52,7 +52,7 @@ class ZoomableInkwell extends StatelessWidget {
   }
 
   Future<ImageProvider> retrieveImage(String imageName) async {
-    Image image = await ResourceManager().retrieveImage(imageName);
+    Image image = await ResourceManager().getImage(imageName);
     return image.image;
   }
 }

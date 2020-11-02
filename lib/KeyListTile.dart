@@ -19,53 +19,60 @@ class KeyListTile extends StatelessWidget {
       padding: EdgeInsets.symmetric(
           vertical: MediaQuery.of(context).size.height*0.212/5, horizontal: 20),
       child: ZoomableInkwell(imageName: gameKey.imageName,
-        child: BlocBuilder<AnimatorBloc,AnimatorState>(
-          builder: (context,state) {
-            if (state is MapView){
-              return Padding(
-                padding: const EdgeInsets.all(3.0),
-                child: Container(
-                  child: gameKey.image,
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white)),
-                ),
-              );
-            }
-            return Draggable<String>(
-                data: gameKey.id,
-                childWhenDragging: Padding(
-                  padding: const EdgeInsets.all(3.0),
-                  child: Container(
-                    height: MediaQuery.of(context).size.height*0.212 - 73,
-                    child: Opacity(opacity:0,child: gameKey.image),
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white)),
-                  ),
-                ),
-                feedback: Opacity(
-                  opacity: 0.7,
-                  child:  Container(
-                    height: MediaQuery.of(context).size.height*0.212 - 79,
-                    child: gameKey.image,
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white)),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(3.0),
-                  child: Stack(
-                    children: [
-                      Container(
-                        child: gameKey.image,
+        child: FutureBuilder(
+          future: gameKey.image.future,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return Container(child: Center(child: CircularProgressIndicator(
+                backgroundColor: Colors.purple[700]),));
+            return BlocBuilder<AnimatorBloc,AnimatorState>(
+              builder: (context,state) {
+                if (state is MapView){
+                  return Padding(
+                    padding: const EdgeInsets.all(3.0),
+                    child: Container(
+                      child: snapshot.data,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white)),
+                    ),
+                  );
+                }
+                return Draggable<String>(
+                    data: gameKey.id,
+                    childWhenDragging: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Container(
+                        height: MediaQuery.of(context).size.height*0.212 - 73,
+                        child: Opacity(opacity:0,child:snapshot.data),
                         decoration: BoxDecoration(
                             border: Border.all(color: Colors.white)),
                       ),
+                    ),
+                    feedback: Opacity(
+                      opacity: 0.7,
+                      child:  Container(
+                        height: MediaQuery.of(context).size.height*0.212 - 79,
+                        child: snapshot.data,
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.white)),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Stack(
+                        children: [
+                          Container(
+                            child: snapshot.data,
+                            decoration: BoxDecoration(
+                                border: Border.all(color: Colors.white)),
+                          ),
 
-                    ],
-                  ),
-                ));
+                        ],
+                      ),
+                    ));
+              }
+      );
           }
-      ),),
+        ),),
     );
   }
 

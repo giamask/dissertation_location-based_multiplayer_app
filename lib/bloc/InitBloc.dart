@@ -4,8 +4,12 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/ScanEvent.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../GameState.dart';
+import 'ErrorBloc.dart';
+import 'ErrorEvent.dart';
 import 'KeyManagerBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
 import 'OrderBloc.dart';
@@ -21,14 +25,17 @@ import 'DialogEvent.dart';
 import 'NotificationBloc.dart';
 
 class InitBloc extends Bloc<InitEvent,InitState>{
-  final DialogBloc dialogBloc = DialogBloc();
+  DialogBloc dialogBloc ;
   final BackgroundDisplayBloc backgroundDisplayBloc;
   final KeyManagerBloc keyManagerBloc;
   final NotificationBloc notificationBloc;
   final OrderBloc orderBloc;
   final ScanBloc scanBloc;
+  final BuildContext context;
 
-  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc,this.scanBloc);
+  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc,this.scanBloc,this.context,){
+    dialogBloc = DialogBloc(context);
+  }
 
   @override
   Future<void> close() {
@@ -43,13 +50,20 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   Stream<InitState> mapEventToState(InitEvent event) async*{
     if (event is GameInitialized && !(state is Initialized)) {
       ResourceManager resourceManager = ResourceManager();
-      await resourceManager.init(backgroundDisplayBloc,keyManagerBloc,notificationBloc,orderBloc);
-      String assetRegistry = await resourceManager.retrieveAssetRegistry();
-      Set<Marker> markers = objectMarkersFromJson(assetRegistry);
-      keyManagerBloc.add(KeyManagerListInitialization());
-      orderBloc.add(OrderInitialized());
-      scanBloc.add(ScanInitialized());
-      yield Initialized(markers: markers,controller: Completer());
+      try {
+        await resourceManager.init(
+            backgroundDisplayBloc, keyManagerBloc, notificationBloc, orderBloc,BlocProvider.of<ErrorBloc>(context));
+        String assetRegistry = await resourceManager.retrieveAssetRegistry();
+        Set<Marker> markers = objectMarkersFromJson(assetRegistry);
+        keyManagerBloc.add(KeyManagerListInitialization());
+        orderBloc.add(OrderInitialized());
+        scanBloc.add(ScanInitialized());
+        if (!await permissionManager()) BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(id: 31, message: "Για τη σωστή λειτουργία της εφαρμογής δώστε δικαίωματα πρόσβασης στην τοποθεσία σας")));
+        yield Initialized(markers: markers,controller: Completer());
+      }
+      on ErrorEvent catch (ee){
+        BlocProvider.of<ErrorBloc>(context).add(ee);
+      }
     }
   }
 
@@ -75,7 +89,7 @@ class InitBloc extends Bloc<InitEvent,InitState>{
 
   void displayPopUp(String objectId) async{
     if (!(state is Initialized) || ResourceManager().status != Status.initialized) {
-      print("Status not initialized");
+      BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(id: 1, message: "Δεν έγινε σωστή εκκίνηση της εφαρμογής")));
       return;
     }
     String assetRegistry = await ResourceManager().retrieveAssetRegistry();
@@ -95,18 +109,14 @@ class InitBloc extends Bloc<InitEvent,InitState>{
     List<dynamic> keyMatches = ResourceManager().readFromGameState(objectId: object["@ObjectId"]);
     List<Color> colors = [];
     keyMatches.forEach((element) async {
-      try {
         KeyMatch keyMatch = element;
         Map team = await ResourceManager().teamFromUserId(keyMatch.matchmaker);
 
         colors.add(Color.fromRGBO(team['Color'][0], team['Color'][1], team['Color'][2], 1));
-      }
-      catch (e){
-        print(e);
-      }
     });
     //hardcode
     int slots = 3;
+
     List<bool> matches = [for (int i=0;i<keyMatches.length;i++) true, for (int i=0;i<slots-keyMatches.length;i++) false];
     dialogBloc.add(MarkerTap(id:object["@ObjectId"],name:object["ObjectTitle"],matches: matches,imagePath: object["ObjectImage"],colors: colors));
 
@@ -117,7 +127,16 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   Future<void> moveZoomCamera(LatLng latlen, double zoom) async {
     final Completer<GoogleMapController> _controller = state.props[1];
     final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newLatLngZoom(latlen, zoom));
+    try {
+      controller.animateCamera(CameraUpdate.newLatLngZoom(latlen, zoom));
+    }
+    catch(e){
+      BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(id: 40, message: "Ο χάρτης δεν ανταποκρίνεται σωστά. Συνίσταται η επανεκκίνηση της εφαρμογής")));
+    }
+  }
+
+  Future<bool> permissionManager() async {
+      return true;
   }
 
 }

@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'ErrorBloc.dart';
+import 'ErrorEvent.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/KeyManagerEvent.dart';
@@ -12,9 +15,11 @@ import 'NotificationEvent.dart';
 import 'OrderEvent.dart';
 import 'OrderState.dart';
 
+
 class OrderBloc extends Bloc<OrderEvent, OrderState> {
   int currentMove;
-  OrderBloc(){
+  final BuildContext context;
+  OrderBloc(this.context){
     currentMove= 0;
   }
 
@@ -47,6 +52,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
 
     if (event is OrderInconsistencyDetected && state is OrderUpToDate){
       yield(OrderUpdateInProcess());
+      try{
       List lostMovesList = await ResourceManager().getPastMoves(currentMove);
       await lostMovesList.forEach((element) async {
           Map<String,dynamic> lostMove ={};
@@ -71,6 +77,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         currentMove=lostMovesList.last[0];
         ResourceManager().backgroundDisplayBloc.scoreboardChanged=true;
         ResourceManager().keyManagerBloc.add(KeyManagerSyncNeeded());
+      }}
+      on ErrorThrown catch(et){
+        BlocProvider.of<ErrorBloc>(context).add(et);
       }
       yield(OrderUpToDate());
     }

@@ -8,12 +8,7 @@ class AssetRegistryManager{
   Future<String> retrieveAssetRegistry() async{
     final path=await localPath;
     File registry=File("$path\\asset_registry.json");
-    try{
-      return registry.readAsStringSync();
-    }
-    on FileSystemException catch(e){
-      return "Cannot find asset registry.";
-    }
+    return registry.readAsStringSync();
   }
 
   Future<String> get localPath async {

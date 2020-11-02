@@ -3,7 +3,11 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:diplwmatikh_map_test/Repositories/ResourceManager.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'ErrorBloc.dart';
+import 'ErrorEvent.dart';
 import 'ScanEvent.dart';
 import 'ScanState.dart';
 
@@ -12,7 +16,8 @@ import 'ScanState.dart';
 class ScanBloc extends Bloc<ScanEvent, ScanState> {
   bool cheatMode = false;
   bool timedMode = false;
-  ScanBloc(){
+  final BuildContext context;
+  ScanBloc(this.context){
     cheatMode = ResourceManager().cheatMode;
   }
 
@@ -30,11 +35,16 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       yield(ScanUpdateSuccess(await ResourceManager().getScans()));
     }
     if (event is ScanExecuted && state is ScanUpdateSuccess){
-      ResourceManager().addScan(objectId: event.scan.objectId,dateTime: event.scan.timestamp);
+      try{
+      await ResourceManager().addScan(objectId: event.scan.objectId,dateTime: event.scan.timestamp);
       List<Scan> newScanList = [...state.props];
       newScanList.removeWhere((element) => element.objectId==event.scan.objectId);
       newScanList.add(event.scan);
       yield(ScanUpdateSuccess(newScanList));
+      }
+      on ErrorThrown catch (et){
+        BlocProvider.of<ErrorBloc>(context).add(et);
+      }
     }
   }
 

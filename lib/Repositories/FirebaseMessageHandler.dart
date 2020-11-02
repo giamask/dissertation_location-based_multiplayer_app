@@ -15,7 +15,7 @@ import 'ResourceManager.dart';
 
 class FirebaseMessageHandler {
   // TODO confirm session number
-  // TODO call this and return if there has been a sync error
+
 
   BackgroundDisplayBloc backgroundDisplayBloc;
   KeyManagerBloc keyManagerBloc;
