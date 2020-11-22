@@ -133,7 +133,7 @@ class ResourceManager{
     }
     on SocketException catch (ce){
       throw ErrorThrown(CustomError(id: 51,
-          message: "Υπήρξε πρόβλημα με την αντιστοίχηση σας. Ελέγξτε την σύνδεση σας στο internet και προσπαθήστε ξανά."));
+          message: "Υπήρξε πρόβλημα με την αντιστοίχηση σας. Παρακαλώ προσπαθήστε ξανά."));
     }
 
   }

@@ -11,7 +11,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'bloc/AnimatorBloc.dart';
 import 'bloc/AnimatorEvent.dart';
 import 'bloc/AnimatorState.dart' as aniState;
-import 'main.dart';
+import 'main3.dart';
 
 class AnimatedMapBuilder extends StatefulWidget {
   const AnimatedMapBuilder({

@@ -66,13 +66,13 @@ class DragBloc extends Bloc<DragEvent,DragState>{
   }
 
   void startTimeoutTimer() async{
-    await Future.delayed(Duration(seconds: 15));
+    await Future.delayed(Duration(seconds: 10));
     if (this.state is DragRequestInProgress){
       this.add(DragResponseTimeout());
     }
   }
   void startImageTimer(DragEvent event) async{
-    await Future.delayed(Duration(seconds: 15));
+    await Future.delayed(Duration(seconds: 10));
     this.add(event);
   }
 
