@@ -30,7 +30,8 @@ class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
   Stream<NotificationState> mapEventToState(NotificationEvent event) async*{
     if (event is NotificationReceivedFromMatch){
       Map<String,dynamic> json = event.props[0];
-      String text = "Ο παίκτης <b>${json['userId']}</b> αντιστοίχισε το στοιχείο <b>${json['keyId'].toString()}</b> στην τοποθεσία <b>${json['objectId'].toString()}</b>.";
+
+      String text = "Ο παίκτης <b>${await ResourceManager().playerNameFromUserId(json['userId'])}</b> αντιστοίχισε το στοιχείο <b>${json['keyId'].toString()}</b> στην τοποθεσία <b>${json['objectId'].toString()}</b>.";
       RichText richText = dataToRichText(text);
 
       List colorValues = (await ResourceManager().teamFromUserId(json['userId']))['Color'];
@@ -44,7 +45,7 @@ class NotificationBloc extends Bloc<NotificationEvent,NotificationState>{
     if (event is NotificationReceivedFromUnmatch){
       Map<String,dynamic> json = event.props[0];
       Map team= (await ResourceManager().teamFromUserId(json['userId']));
-      String text = "Ο παίκτης <b>${json['userId']}</b> της ομάδας <b>${team['TeamName']}</b> έχασε πόντους κάνοντας μια λανθασμένη αντιστοίχηση.";
+      String text = "Ο παίκτης <b>${await ResourceManager().playerNameFromUserId(json['userId'])}</b> της ομάδας <b>${team['TeamName']}</b> έχασε πόντους κάνοντας μια λανθασμένη αντιστοίχηση.";
       RichText richText = dataToRichText(text);
       List colorValues = team['Color'];
       Color color = Color.fromRGBO(colorValues[0],colorValues[1],colorValues[2],1);

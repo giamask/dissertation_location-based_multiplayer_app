@@ -39,7 +39,10 @@ class ZoomableInkwell extends StatelessWidget {
                               : Container(
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                        backgroundColor: Colors.purple[700]),
+                                      backgroundColor:
+                                      Colors.purple[800],
+                                      valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
+                                    ),
                                   ),
                                 );
                         }),

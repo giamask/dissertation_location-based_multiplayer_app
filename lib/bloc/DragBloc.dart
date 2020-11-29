@@ -32,6 +32,7 @@ class DragBloc extends Bloc<DragEvent,DragState>{
   Stream<DragState> mapEventToState(DragEvent event) async*{
     if (event is DragCommitted){
       try {
+
         await ResourceManager().addMove(objectId: int.parse(objectId),
             keyId: int.parse(event.props[0]),
             type: "match",

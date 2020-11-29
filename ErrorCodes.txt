@@ -12,4 +12,5 @@
 54: addScan get request timeout
 55: getImage get request timeout
 56: Διακοπή σύνδεσης δικτύου
+57: Αδυναμία προσκόμισης διαθέσιμων παιχνιδιών απο τον διακομιστή
 

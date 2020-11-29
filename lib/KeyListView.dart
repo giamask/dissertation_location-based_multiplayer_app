@@ -17,7 +17,11 @@ class KeyListView extends StatelessWidget {
       builder: (context,state) {
         if (state is KeyManagerUninitialized) return Container(
           child: Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(
+              backgroundColor:
+              Colors.purple[800],
+              valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
+            ),
           ),
 
         );

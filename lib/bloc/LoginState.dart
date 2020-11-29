@@ -1,5 +1,7 @@
 
 
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 
 abstract class LoginState extends Equatable {
@@ -18,6 +20,9 @@ class UserLoggedOut extends LoginState {
 }
 
 class UserLoggedIn extends LoginState {
+  final Completer<List<Map>> sessionsRequest;
+
+  UserLoggedIn(this.sessionsRequest);
   @override
-  List<Object> get props => [];
+  List<Object> get props => [sessionsRequest];
 }

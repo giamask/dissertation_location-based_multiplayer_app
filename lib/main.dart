@@ -1,5 +1,7 @@
+import 'package:diplwmatikh_map_test/Repositories/FirebaseMessageHandler.dart';
 import 'package:diplwmatikh_map_test/bloc/LoginState.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -10,35 +12,44 @@ import 'LoginButton.dart';
 import 'LoginPopup.dart';
 import 'bloc/LoginBloc.dart';
 import 'bloc/LoginEvent.dart';
-import 'main3.dart';
+import 'GameScreen.dart';
 
 void main() => runApp(MaterialApp(
     title: 'Scrabbling',
+    builder: (context, child) {
+      return ScrollConfiguration(
+        behavior: IndicatorlessBehavior(),
+        child: child,
+      );
+    },
     theme: ThemeData(primarySwatch: Colors.blue),
     home: LoginScreen()));
 
 class LoginScreen extends StatelessWidget {
+
+
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => LoginBloc(),
       child: FutureBuilder(
-          future: Future.wait([Firebase.initializeApp(),Future.delayed(Duration(seconds: 3))]),
+          future: Future.wait(
+              [Firebase.initializeApp(), Future.delayed(Duration(seconds: 3),)]),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               //TODO pop up
               print("init error");
               return null;
             }
-          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.connectionState == ConnectionState.done) {
               return LoginPage();
             }
             return Container(
                 decoration: BoxDecoration(
                     image: DecorationImage(
-                        image: Image.asset("assets/splashscreen.png").image,
+                        image: Image.asset("assets/splashscreen.jpg").image,
                         fit: BoxFit.cover)));
-
           }),
     );
 
@@ -91,20 +102,19 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset:false,
-        floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          LoginBloc loginBloc = BlocProvider.of<LoginBloc>(context);
-          if (loginBloc.state is UserLoggedOut) loginBloc.add(LoginAuthorized(null));
-          if (loginBloc.state is UserLoggedIn) loginBloc.add(LoginDeauthorized());
-        },
-      ),
+      resizeToAvoidBottomInset: false,
+//        floatingActionButton: FloatingActionButton(
+//        onPressed: () {
+//          LoginBloc loginBloc = BlocProvider.of<LoginBloc>(context);
+//          if (loginBloc.state is UserLoggedOut) loginBloc.add(LoginAuthorized(null));
+//          if (loginBloc.state is UserLoggedIn) loginBloc.add(LoginDeauthorized());
+//        },
+//      ),
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
             image: DecorationImage(
-                image: AssetImage("assets/background.png"),
-                fit: BoxFit.cover)),
+                image: AssetImage("assets/background.jpg"), fit: BoxFit.cover)),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.only(bottom: 40, top: 40),
@@ -120,23 +130,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 BlocBuilder(
                     bloc: BlocProvider.of<LoginBloc>(context),
                     builder: (context, state) {
-                      if (state is LoginInitial) return Container();
                       if (state is UserLoggedOut)
                         return Column(children: [
                           AnimatedLoginButton(
-                            animationController:preController,
+                            animationController: preController,
                             child: LoginButton(
                                 text: "Σύνδεση με Google Account",
                                 image: Image.asset(
                                   "assets/google_logo.png",
                                   height: 35.0,
                                 ),
-                                onPressed:
-                                  _googleSignIn
-                                ),
+                                onPressed: _googleSignIn),
                           ),
                           AnimatedLoginButton(
-                            animationController:preController,
+                            animationController: preController,
                             child: LoginButton(
                               text: "Σύνδεση με τον αριθμό σας",
                               icon: Icon(Icons.phone,
@@ -147,33 +154,60 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             ),
                           )
                         ]);
-                      return Column(
-                        children: [
-                          AnimatedLoginButton(
-                            animationController:postController,
-                            child: LoginButton(
-                                twoliner: true,
-                                text:
-                                    'Σύνδεση στο παιχνίδι "Αίγινα 22/5/2021"',
-                                icon: Icon(
-                                  Icons.play_circle_fill,
-                                  color: Colors.green,
-                                ),
-                                onPressed: ()=>Navigator.of(context).push( MaterialPageRoute(builder: (context) => GameScreen()),)),
-                          ),
-                          AnimatedLoginButton(
-                            animationController:postController,
-                            customOffset:3.6,
-                            child: LoginButton(
-                                text: "Αποσύνδεση",
-                                icon: Icon(
-                                  Icons.logout,
-                                  color: Colors.red,
-                                ),
-                                onPressed: _googleSignOut),
-                          )
-                        ],
-                      );
+                      if (state is UserLoggedIn)
+                        return FutureBuilder(
+                            future: state.sessionsRequest.future,
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData)
+                                return Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: CircularProgressIndicator(
+                                    backgroundColor: Colors.lightBlue[700],
+                                  ),
+                                );
+                              return Column(
+                                children: [
+                                  for (Map session in snapshot.data)
+                                    AnimatedLoginButton(
+                                      animationController: postController,
+                                      child: LoginButton(
+                                          twoliner: true,
+                                          text:
+                                              'Σύνδεση στο παιχνίδι "${session['sessionName']}"',
+                                          icon: Icon(
+                                            Icons.play_circle_fill,
+                                            color: Colors.green,
+                                          ),
+                                          onPressed:
+                                              () => Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (context) => GameScreen(
+                                                            user: _auth
+                                                                    .currentUser
+                                                                    .email ??
+                                                                _auth
+                                                                    .currentUser
+                                                                    .phoneNumber,
+                                                            sessionId: session[
+                                                                    'sessionId']
+                                                                as int)),
+                                                  )),
+                                    ),
+                                  AnimatedLoginButton(
+                                    animationController: postController,
+                                    customOffset: 3.6,
+                                    child: LoginButton(
+                                        text: "Αποσύνδεση",
+                                        icon: Icon(
+                                          Icons.logout,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: _googleSignOut),
+                                  )
+                                ],
+                              );
+                            });
+                      return Container();
                     })
               ],
             ),
@@ -227,6 +261,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       },
       codeSent: (String verificationId, [int resendToken]) async {
         textController = TextEditingController();
+        print(_auth.currentUser);
+        if (_auth.currentUser != null) return null;
         await showDialog(
             context: context,
             builder: (context) {
@@ -266,6 +302,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     await googleSignIn.signOut();
     await _auth.signOut();
     print("User Sign Out");
+  }
+}
 
+class IndicatorlessBehavior extends ScrollBehavior {
+  @override
+  Widget buildViewportChrome(
+      BuildContext context, Widget child, AxisDirection axisDirection) {
+    return child;
   }
 }

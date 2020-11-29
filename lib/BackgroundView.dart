@@ -9,7 +9,6 @@ import 'package:diplwmatikh_map_test/bloc/BackgroundDisplayState.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui' as ui;
-
 import 'ScoreView.dart';
 import 'bloc/AnimationEvent.dart';
 import 'bloc/BackgroundDisplayBloc.dart';
@@ -33,12 +32,14 @@ class _BackgroundViewState extends State<BackgroundView>
               (state is BackgroundDisplayUninitialized)) {
             return Container(
               decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.blue[900], Colors.purple[600]])),
+                  image: DecorationImage(
+                      image: AssetImage("assets/background_darker.jpg"), fit: BoxFit.cover)),
               child: Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                  backgroundColor:
+                  Colors.purple[800],
+                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
+                ),
               ),
             );
           }
@@ -52,15 +53,12 @@ class _BackgroundViewState extends State<BackgroundView>
           image.image
               .resolve(new ImageConfiguration())
               .addListener(ImageStreamListener((info, _) {
-            completer.complete(info.image);
+            if (!completer.isCompleted)completer.complete(info.image);
           }));
-
           return Container(
               decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.blue[900], Colors.purple[600]])),
+                  image: DecorationImage(
+                      image: AssetImage("assets/background_darker.jpg"), fit: BoxFit.cover)),
               child: Column(
                 children: <Widget>[
                   Padding(
@@ -82,8 +80,10 @@ class _BackgroundViewState extends State<BackgroundView>
                           return Container(
                             child: Center(
                                 child: CircularProgressIndicator(
-                              backgroundColor: Colors.purple[700],
-                            )),
+                                  backgroundColor:
+                                  Colors.purple[800],
+                                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
+                                ),),
                           );
                         }
                         final scale = ((MediaQuery.of(context)
@@ -278,7 +278,8 @@ class _BackgroundViewState extends State<BackgroundView>
                                             padding: const EdgeInsets.all(28.0),
                                             child: CircularProgressIndicator(
                                               backgroundColor:
-                                                  Colors.purple[700],
+                                                  Colors.purple[800],
+                                              valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
                                             ),
                                           ),
                                         );

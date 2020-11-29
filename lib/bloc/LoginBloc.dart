@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/animation.dart';
 
@@ -25,20 +26,22 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       preController = event.preController;
       postController = event.postController;
       if (event.user==null){
-        yield(UserLoggedOut());
-        preController.forward();
+        this.add(LoginDeauthorized());
       }else{
-        yield(UserLoggedIn());
-        postController.forward();
+        this.add(LoginAuthorized(event.user));
       }
     }
-
     if (event is LoginAuthorized){
-      await preController.reverse().then((value) => "");
-      yield(UserLoggedIn());
+      await preController.reverse().then((value) => null);
+      Completer<List<Map>> sessionsRequest = Completer();
+      yield(UserLoggedIn(sessionsRequest));
+      sessionsRequest.complete(await ResourceManager().getSessions(event.user.email??event.user.phoneNumber).timeout(Duration(seconds: 7),onTimeout: (){
+        //TODO error handling
+        return [];
+      }));
+      await sessionsRequest.future;
       postController.forward();
     }
-
     if (event is LoginDeauthorized){
       await postController.reverse().then((value) => null);
       yield(UserLoggedOut());

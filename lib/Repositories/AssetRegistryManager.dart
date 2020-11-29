@@ -47,5 +47,11 @@ class AssetRegistryManager{
     });
   }
 
+  Future<String> playerNameFromUserId(String userId) async{
+    Map team = await teamFromUserId(userId);
+    int index =(team['PlayerIds'] as List).indexOf(userId);
+    return team['PlayerNames'][index];
+  }
+
 
 }
