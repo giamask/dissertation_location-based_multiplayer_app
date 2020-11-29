@@ -34,8 +34,9 @@ class InitBloc extends Bloc<InitEvent,InitState>{
   final OrderBloc orderBloc;
   final ScanBloc scanBloc;
   final BuildContext context;
+  final ErrorBloc errorBloc;
 
-  InitBloc(this.user,this.sessionId,this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc,this.scanBloc,this.context,){
+  InitBloc(this.user,this.sessionId,this.errorBloc,this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc,this.scanBloc,this.context,){
     dialogBloc = DialogBloc(context);
   }
 
@@ -54,7 +55,7 @@ class InitBloc extends Bloc<InitEvent,InitState>{
       ResourceManager resourceManager = ResourceManager();
       try {
         await resourceManager.init(user,sessionId,
-            backgroundDisplayBloc, keyManagerBloc, notificationBloc, orderBloc,BlocProvider.of<ErrorBloc>(context));
+            backgroundDisplayBloc, keyManagerBloc, notificationBloc, orderBloc,errorBloc);
         String assetRegistry = await resourceManager.retrieveAssetRegistry();
         Set<Marker> markers = objectMarkersFromJson(assetRegistry);
         keyManagerBloc.add(KeyManagerListInitialization());

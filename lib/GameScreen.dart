@@ -37,14 +37,13 @@ import 'bloc/NotificationBloc.dart';
 class GameScreen extends StatelessWidget {
   final String user;
   final int sessionId;
-
   const GameScreen({Key key, this.user, this.sessionId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(providers: [
           BlocProvider<ErrorBloc>(
-            create: (BuildContext context) => ErrorBloc(context),
+            create: (BuildContext context)=>ErrorBloc(context),
           ),
           BlocProvider<OrderBloc>(
             create: (BuildContext context) => OrderBloc(context),
@@ -67,6 +66,7 @@ class GameScreen extends StatelessWidget {
           BlocProvider<InitBloc>(
             create: (BuildContext context) => InitBloc(
                 user,sessionId,
+                BlocProvider.of<ErrorBloc>(context),
                 BlocProvider.of<BackgroundDisplayBloc>(context),
                 BlocProvider.of<KeyManagerBloc>(context),
                 BlocProvider.of<NotificationBloc>(context),

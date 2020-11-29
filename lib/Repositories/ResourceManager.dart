@@ -50,7 +50,7 @@ class ResourceManager{
   ResourceManager._internal(){}
 
   ConnectivityResult connectivityState = ConnectivityResult.mobile;
-  FirebaseMessaging _firebaseMessaging;
+
   LoginBloc loginBloc;
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
@@ -82,8 +82,7 @@ class ResourceManager{
     this.errorBloc=errorBloc;
 
 
-    _firebaseMessaging.requestNotificationPermissions();
-    _firebaseMessaging.subscribeToTopic("session6");
+
 
 
     firebaseMessageHandler.setUpListener();

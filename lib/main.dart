@@ -1,4 +1,5 @@
 import 'package:diplwmatikh_map_test/Repositories/FirebaseMessageHandler.dart';
+import 'package:diplwmatikh_map_test/bloc/ErrorEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/LoginState.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -10,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'AnimatedLoginButton.dart';
 import 'LoginButton.dart';
 import 'LoginPopup.dart';
+import 'bloc/ErrorBloc.dart';
 import 'bloc/LoginBloc.dart';
 import 'bloc/LoginEvent.dart';
 import 'GameScreen.dart';
@@ -24,7 +26,12 @@ void main() => runApp(MaterialApp(
       );
     },
     theme: ThemeData(primarySwatch: Colors.blue),
-    home: LoginScreen()));
+    home: MultiBlocProvider(
+        providers:[
+          BlocProvider(create:(context) => ErrorBloc(context)),
+          BlocProvider(create: (context) => LoginBloc(context)),
+        ],
+        child: LoginScreen())));
 
 class LoginScreen extends StatelessWidget {
 
@@ -32,30 +39,28 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => LoginBloc(),
-      child: FutureBuilder(
-          future: Future.wait(
-              [Firebase.initializeApp(), Future.delayed(Duration(seconds: 3),)]),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              //TODO pop up
-              print("init error");
-              return null;
-            }
-            if (snapshot.connectionState == ConnectionState.done) {
-              FirebaseMessaging _firebaseMessaging =FirebaseMessaging()..configure(
-                onMessage: (message) async {ResourceManager().onFirebaseMessage(message);},
-              );
-              return LoginPage();
-            }
-            return Container(
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: Image.asset("assets/splashscreen.jpg").image,
-                        fit: BoxFit.cover)));
-          }),
-    );
+    return FutureBuilder(
+        future: Future.wait(
+            [Firebase.initializeApp(), Future.delayed(Duration(seconds: 3),)]),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            BlocProvider.of<ErrorBloc>(context).add(ErrorFatalThrown(CustomError(message: "Άγνωστο πρόβλημα αρχικοποίησης",id:3)));
+            return null;
+          }
+          if (snapshot.connectionState == ConnectionState.done) {
+            FirebaseMessaging _firebaseMessaging =FirebaseMessaging()..configure(
+              onMessage: (message) async {ResourceManager().onFirebaseMessage(message);},
+            );
+            _firebaseMessaging.requestNotificationPermissions();
+            _firebaseMessaging.subscribeToTopic("session6");
+            return LoginPage();
+          }
+          return Container(
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                      image: Image.asset("assets/splashscreen.jpg").image,
+                      fit: BoxFit.cover)));
+        });
 
   }
 }
@@ -102,12 +107,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     });
   }
 
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    var errorBloc = BlocProvider.of<ErrorBloc>(context);
     return Scaffold(
       resizeToAvoidBottomInset: false,
 //        floatingActionButton: FloatingActionButton(
 //        onPressed: () {
+//            errorBloc.add(ErrorThrown(CustomError(id:10,message: "test")));
 //          LoginBloc loginBloc = BlocProvider.of<LoginBloc>(context);
 //          if (true) loginBloc.add(LoginAuthorized(loginBloc.currentUser));
 //          if (loginBloc.state is UserLoggedIn) loginBloc.add(LoginDeauthorized());
