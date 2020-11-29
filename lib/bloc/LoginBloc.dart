@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/animation.dart';
 
 import 'LoginEvent.dart';
@@ -13,6 +14,11 @@ import 'LoginState.dart';
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   AnimationController preController;
   AnimationController postController;
+  User currentUser;
+
+  LoginBloc(){
+    ResourceManager().loginBloc=this;
+  }
 
   @override
   get initialState => LoginInitial();
@@ -32,6 +38,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       }
     }
     if (event is LoginAuthorized){
+      currentUser = event.user;
       await preController.reverse().then((value) => null);
       Completer<List<Map>> sessionsRequest = Completer();
       yield(UserLoggedIn(sessionsRequest));
@@ -46,6 +53,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       await postController.reverse().then((value) => null);
       yield(UserLoggedOut());
       preController.forward();
+    }
+    if (event is LoginOutdated){
+      this.add(LoginAuthorized(currentUser));
     }
 
   }

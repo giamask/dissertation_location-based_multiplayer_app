@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/animation.dart';
 
-abstract class LoginEvent extends Equatable {
+abstract class LoginEvent  {
   const LoginEvent();
 }
 
@@ -31,6 +31,10 @@ class LoginAuthorized extends LoginEvent {
 class LoginDeauthorized extends LoginEvent {
 
   LoginDeauthorized();
+  @override
+  List<Object> get props => [];
+}
+class LoginOutdated extends LoginEvent{
   @override
   List<Object> get props => [];
 }

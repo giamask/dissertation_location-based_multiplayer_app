@@ -4,6 +4,8 @@ import 'package:connectivity/connectivity.dart';
 import 'package:diplwmatikh_map_test/GameState.dart';
 import 'package:diplwmatikh_map_test/bloc/ErrorBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/ErrorEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/LoginBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/LoginEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/ScanBloc.dart';
@@ -49,6 +51,7 @@ class ResourceManager{
 
   ConnectivityResult connectivityState = ConnectivityResult.mobile;
   FirebaseMessaging _firebaseMessaging;
+  LoginBloc loginBloc;
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
   KeyManagerBloc keyManagerBloc;
@@ -78,9 +81,7 @@ class ResourceManager{
     this.orderBloc = orderBloc;
     this.errorBloc=errorBloc;
 
-    _firebaseMessaging =FirebaseMessaging()..configure(
-      onMessage: (message) async {_onFirebaseMessage(message);},
-    );
+
     _firebaseMessaging.requestNotificationPermissions();
     _firebaseMessaging.subscribeToTopic("session6");
 
@@ -115,7 +116,17 @@ class ResourceManager{
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
-  void _onFirebaseMessage(Map<String,dynamic> messageReceived) async => firebaseMessageHandler.messageReceiver(messageReceived);
+  void onFirebaseMessage(Map<String,dynamic> messageReceived) async {
+    String bodyAsString = messageReceived['data']['body'];
+    Map<String,dynamic> body = json.decode(bodyAsString);
+    print(body['type']);
+    if ((body['type'] as String).contains("gameStarted")){
+      loginBloc.add(LoginOutdated());
+      return;
+    }
+    print("heyheyeheheeee");
+    firebaseMessageHandler.messageReceiver(messageReceived);
+  }
   Future<String> retrieveAssetRegistry() async =>  assetRegistryManager.retrieveAssetRegistry();
   Future<Map> teamFromUserId(String userId) async => assetRegistryManager.teamFromUserId(userId);
 
@@ -267,8 +278,9 @@ class ResourceManager{
       print(responseJson.runtimeType);
       return responseJson.cast<Map>();
     }
-    catch (e) {
-      print("decode error1" + e);
+    on SocketException catch (se){
+      throw ErrorThrown(CustomError(id: 57,
+          message: "Αδυναμία φόρτωσης παιχνιδιών. Ελέγξτε την σύνδεση σας στο internet."));
     }
   }
 

@@ -13,6 +13,7 @@ import 'LoginPopup.dart';
 import 'bloc/LoginBloc.dart';
 import 'bloc/LoginEvent.dart';
 import 'GameScreen.dart';
+import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 
 void main() => runApp(MaterialApp(
     title: 'Scrabbling',
@@ -43,6 +44,9 @@ class LoginScreen extends StatelessWidget {
               return null;
             }
             if (snapshot.connectionState == ConnectionState.done) {
+              FirebaseMessaging _firebaseMessaging =FirebaseMessaging()..configure(
+                onMessage: (message) async {ResourceManager().onFirebaseMessage(message);},
+              );
               return LoginPage();
             }
             return Container(
@@ -53,7 +57,6 @@ class LoginScreen extends StatelessWidget {
           }),
     );
 
-    // Otherwise, show something whilst waiting for initialization to complete
   }
 }
 
@@ -106,7 +109,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 //        floatingActionButton: FloatingActionButton(
 //        onPressed: () {
 //          LoginBloc loginBloc = BlocProvider.of<LoginBloc>(context);
-//          if (loginBloc.state is UserLoggedOut) loginBloc.add(LoginAuthorized(null));
+//          if (true) loginBloc.add(LoginAuthorized(loginBloc.currentUser));
 //          if (loginBloc.state is UserLoggedIn) loginBloc.add(LoginDeauthorized());
 //        },
 //      ),
