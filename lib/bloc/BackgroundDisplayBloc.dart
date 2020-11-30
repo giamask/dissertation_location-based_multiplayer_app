@@ -7,6 +7,7 @@ import 'package:diplwmatikh_map_test/bloc/DragEvent.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ErrorBloc.dart';
 import 'ErrorEvent.dart';
+import 'KeyManagerBloc.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:flutter/material.dart';
 import '../GameState.dart';
@@ -20,7 +21,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
   int slots = 3;
   //hardcode TODO
   final BuildContext context;
-
+  final KeyManagerBloc keyManagerBloc;
 
   List<List> scoreboard = [];
   bool scoreboardChanged=true;
@@ -33,7 +34,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
     return super.close();
   }
 
-  BackgroundDisplayBloc(this.context);
+  BackgroundDisplayBloc(this.context, this.keyManagerBloc);
   @override
   BackgroundDisplayState get initialState => BackgroundDisplayUninitialized() ;
 
@@ -109,7 +110,7 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
   void dropDragList(int slots, String id){
     dragBlocList.forEach((bloc){bloc.close();});
     dragBlocList.removeWhere((element){return true;});
-    for (int i=0;i<slots;i++) dragBlocList.add(new DragBloc(id,context));
+    for (int i=0;i<slots;i++) dragBlocList.add(new DragBloc(id,context,keyManagerBloc));
 
   }
 

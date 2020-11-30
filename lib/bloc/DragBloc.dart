@@ -5,6 +5,8 @@ import 'package:diplwmatikh_map_test/bloc/DragState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'ErrorBloc.dart';
 import 'ErrorEvent.dart';
+import 'KeyManagerBloc.dart';
+import 'KeyManagerEvent.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
 import 'package:flutter/material.dart';
 import 'AnimationBloc.dart';
@@ -14,7 +16,9 @@ import 'DragState.dart';
 class DragBloc extends Bloc<DragEvent,DragState>{
   final String objectId;
   final BuildContext context;
-  DragBloc(this.objectId,this.context);
+  final KeyManagerBloc keyManagerBloc;
+
+  DragBloc(this.objectId,this.context, this.keyManagerBloc);
 
   AnimationBloc scoreChangeAnimation = AnimationBloc();
 
@@ -32,11 +36,11 @@ class DragBloc extends Bloc<DragEvent,DragState>{
   Stream<DragState> mapEventToState(DragEvent event) async*{
     if (event is DragCommitted){
       try {
-
         await ResourceManager().addMove(objectId: int.parse(objectId),
             keyId: int.parse(event.props[0]),
             type: "match",
             position: event.props[1]);
+        keyManagerBloc.add(KeyManagerCommit(int.parse(event.props[0])));
         startTimeoutTimer();
         yield DragRequestInProgress(keyId: int.parse(event.props[0]));
       }
@@ -51,6 +55,7 @@ class DragBloc extends Bloc<DragEvent,DragState>{
     }else if (event is DragResponseTimeout){
       BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(id: 50,
           message: "Δεν υπήρξε απάντηση απο τον server. Ελέγξτε την σύνδεση σας στο internet.")));
+      if (state is DragRequestInProgress) keyManagerBloc.add(KeyManagerKeyUnmatch(state.props[0]));
       yield DragEmpty();
     }
     else if (event is DragResponsePositive || event is DragFullMessageReceived){

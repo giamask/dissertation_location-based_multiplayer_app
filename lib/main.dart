@@ -52,7 +52,7 @@ class LoginScreen extends StatelessWidget {
               onMessage: (message) async {ResourceManager().onFirebaseMessage(message);},
             );
             _firebaseMessaging.requestNotificationPermissions();
-            _firebaseMessaging.subscribeToTopic("session6");
+            _firebaseMessaging.subscribeToTopic("session7");
             return LoginPage();
           }
           return Container(

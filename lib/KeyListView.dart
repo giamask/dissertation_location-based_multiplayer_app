@@ -28,7 +28,7 @@ class KeyListView extends StatelessWidget {
         return AnimatedList(itemBuilder: (context,index,animation){
           return SlideTransition(
           position: Tween(begin: Offset(-1,0),end: Offset(0,0)).animate(CurvedAnimation(parent: animation,curve: Curves.easeOut),),
-              child: KeyListTile(BlocProvider.of<KeyManagerBloc>(context).keyList[index]));
+              child: BlocProvider.of<KeyManagerBloc>(context).tileList[index]);
         },
         scrollDirection: Axis.horizontal,
         initialItemCount: BlocProvider.of<KeyManagerBloc>(context).keyList.length,

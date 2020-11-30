@@ -40,6 +40,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         else if (event.move['type']=='unmatch'){
           BackgroundDisplayBloc backgroundDisplayBloc = ResourceManager().backgroundDisplayBloc;
           unmatchDisplayNotify(backgroundDisplayBloc, event.move);
+          if (event.move['userId'] == ResourceManager().user )ResourceManager().keyManagerBloc.add(KeyManagerKeyUnmatch(event.move['keyId']));
+
         }
       }
       else{

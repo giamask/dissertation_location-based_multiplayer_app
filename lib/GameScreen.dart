@@ -54,11 +54,11 @@ class GameScreen extends StatelessWidget {
           BlocProvider<AnimatorBloc>(
             create: (BuildContext context) => AnimatorBloc(),
           ),
-          BlocProvider<BackgroundDisplayBloc>(
-            create: (BuildContext context) => BackgroundDisplayBloc(context),
-          ),
           BlocProvider<KeyManagerBloc>(
             create: (BuildContext context) => KeyManagerBloc(),
+          ),
+          BlocProvider<BackgroundDisplayBloc>(
+            create: (BuildContext context) => BackgroundDisplayBloc(context,BlocProvider.of<KeyManagerBloc>(context)),
           ),
           BlocProvider<NotificationBloc>(
             create: (BuildContext context) => NotificationBloc(),
