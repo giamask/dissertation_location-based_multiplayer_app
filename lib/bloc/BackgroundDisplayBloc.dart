@@ -92,6 +92,9 @@ class BackgroundDisplayBloc extends Bloc<BackgroundDisplayEvent,BackgroundDispla
               score
             ]);
           });
+          scoreboard.sort((a,b){
+            return int.parse(b[2])-int.parse(a[2]);
+          });
         }
         on ErrorThrown catch (et){
           BlocProvider.of<ErrorBloc>(context).add(et);

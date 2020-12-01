@@ -7,7 +7,9 @@ class ScoreView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(gradient: LinearGradient(begin:Alignment.topCenter ,end:Alignment.bottomCenter,colors:[Colors.blue[900],Colors.purple[600]])),
+        decoration: BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage("assets/background_darker.jpg"), fit: BoxFit.cover)),
         child:Column(
           children: <Widget>[
             Padding(
