@@ -40,6 +40,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         else if (event.move['type']=='unmatch'){
           BackgroundDisplayBloc backgroundDisplayBloc = ResourceManager().backgroundDisplayBloc;
           unmatchDisplayNotify(backgroundDisplayBloc, event.move);
+          if (event.move['userId'] == ResourceManager().user )ResourceManager().keyManagerBloc.add(KeyManagerKeyUnmatch(event.move['keyId']));
+
         }
       }
       else{
@@ -87,10 +89,10 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   Future<void> unmatchDisplayNotify(BackgroundDisplayBloc backgroundDisplayBloc, Map move) async{
-    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && move['objectId'] == backgroundDisplayBloc.state.props[3] && move['userId']==ResourceManager().userId.toString()){
+    if (backgroundDisplayBloc.state is ObjectDisplayBuilt && move['objectId'] == backgroundDisplayBloc.state.props[3] && move['userId']==ResourceManager().user){
         backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(
         move['keyId'].toString(), move['position'],
-        move['userId'] == ResourceManager().userId.toString(), false,Colors.grey));
+        move['userId'] == ResourceManager().user, false,Colors.grey));
     }
 
     if ((await ResourceManager().teamFromUserId(move['userId']))['TeamName']==ResourceManager().teamName) ResourceManager().notificationBloc.add(NotificationReceivedFromUnmatch(json:move));
@@ -104,7 +106,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       Map team = await ResourceManager().teamFromUserId(body['userId']);
       backgroundDisplayBloc.add(BackgroundDisplayBecameOutdated(
           body['keyId'].toString(), body['position'],
-          body['userId'] == ResourceManager().userId.toString(), true,Color.fromRGBO(team['Color'][0], team['Color'][1], team['Color'][2], 0.8)));
+          body['userId'] == ResourceManager().user, true,Color.fromRGBO(team['Color'][0], team['Color'][1], team['Color'][2], 0.8)));
     }
   }
 

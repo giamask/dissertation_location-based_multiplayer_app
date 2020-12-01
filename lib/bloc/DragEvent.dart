@@ -27,7 +27,9 @@ class DragResponsePositive extends DragEvent{
 }
 
 class DragResponseNegative extends DragEvent{}
-class DragResponseTimeout extends DragEvent{}
+class DragResponseTimeout extends DragEvent{
+
+}
 
 class DragFullMessageReceived extends DragEvent{
   final Color color;

@@ -205,7 +205,7 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
                   ],
                 ),
               ),onTap: widget.expandable?_handleTap:null,),
-              subtitle: widget.subtitle,
+              subtitle: GestureDetector(child: widget.subtitle,onTap:widget.expandable?_handleTap:null),
               trailing: widget.trailing ?? RotationTransition(
                 turns: _iconTurns,
                 child: const Icon(Icons.expand_more),

@@ -23,7 +23,10 @@ class KeyListTile extends StatelessWidget {
           future: gameKey.image.future,
           builder: (context, snapshot) {
             if (!snapshot.hasData) return Container(child: Center(child: CircularProgressIndicator(
-                backgroundColor: Colors.purple[700]),));
+              backgroundColor:
+              Colors.purple[800],
+              valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
+            ),));
             return BlocBuilder<AnimatorBloc,AnimatorState>(
               builder: (context,state) {
                 if (state is MapView){

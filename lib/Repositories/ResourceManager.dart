@@ -4,6 +4,8 @@ import 'package:connectivity/connectivity.dart';
 import 'package:diplwmatikh_map_test/GameState.dart';
 import 'package:diplwmatikh_map_test/bloc/ErrorBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/ErrorEvent.dart';
+import 'package:diplwmatikh_map_test/bloc/LoginBloc.dart';
+import 'package:diplwmatikh_map_test/bloc/LoginEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderBloc.dart';
 import 'package:diplwmatikh_map_test/bloc/OrderEvent.dart';
 import 'package:diplwmatikh_map_test/bloc/ScanBloc.dart';
@@ -48,7 +50,8 @@ class ResourceManager{
   ResourceManager._internal(){}
 
   ConnectivityResult connectivityState = ConnectivityResult.mobile;
-  FirebaseMessaging _firebaseMessaging;
+
+  LoginBloc loginBloc;
   Status status=Status.none;
   BackgroundDisplayBloc backgroundDisplayBloc;
   KeyManagerBloc keyManagerBloc;
@@ -56,16 +59,19 @@ class ResourceManager{
   NotificationBloc notificationBloc;
   GameState gameState;
   ErrorBloc errorBloc;
-  int userId=1;
   StreamSubscription<ConnectivityResult> connectivitySubscription;
   bool cheatMode=false;
   int teamId;
   List teamColor;
   String teamName;
+  String user;
+  int sessionId;
   FirebaseMessageHandler firebaseMessageHandler;
   AssetRegistryManager assetRegistryManager;
   //Initialization
-  Future<void> init(BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc,OrderBloc orderBloc,ErrorBloc errorBloc) async{
+  Future<void> init(String user, int sessionId,BackgroundDisplayBloc backgroundDisplayBloc,KeyManagerBloc keyManagerBloc,NotificationBloc notificationBloc,OrderBloc orderBloc,ErrorBloc errorBloc) async{
+    this.user= user;
+    this.sessionId = sessionId;
     assetRegistryManager = AssetRegistryManager();
     firebaseMessageHandler= FirebaseMessageHandler(backgroundDisplayBloc,keyManagerBloc,notificationBloc);
     //firebase init
@@ -75,11 +81,8 @@ class ResourceManager{
     this.orderBloc = orderBloc;
     this.errorBloc=errorBloc;
 
-    _firebaseMessaging =FirebaseMessaging()..configure(
-      onMessage: (message) async {_onFirebaseMessage(message);},
-    );
-    _firebaseMessaging.requestNotificationPermissions();
-    _firebaseMessaging.subscribeToTopic("session6");
+
+
 
 
     firebaseMessageHandler.setUpListener();
@@ -87,7 +90,7 @@ class ResourceManager{
     int version = await assetRegistryManager.getVersionNumber();
     http.Response response;
     try {
-      response = await _getRequest("/init/1?version=$version");
+      response = await _getRequest("/init/$sessionId?version=$version");
       if (response.statusCode != HttpStatus.ok) {
         status = Status.error;
         throw SocketException("");
@@ -102,7 +105,7 @@ class ResourceManager{
     status = Status.initialized;
     //gameState init
     gameState = GameState(json.decode(await assetRegistryManager.retrieveAssetRegistry()));
-    Map team = (await assetRegistryManager.teamFromUserId(userId.toString()));
+    Map team = (await assetRegistryManager.teamFromUserId(user));
     teamId=team['@TeamId'];
     teamColor = team['Color'];
     teamName = team['TeamName'];
@@ -112,28 +115,36 @@ class ResourceManager{
         _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
-  void _onFirebaseMessage(Map<String,dynamic> messageReceived) async => firebaseMessageHandler.messageReceiver(messageReceived);
+  void onFirebaseMessage(Map<String,dynamic> messageReceived) async {
+    String bodyAsString = messageReceived['data']['body'];
+    Map<String,dynamic> body = json.decode(bodyAsString);
+    print(body['type']);
+    if ((body['type'] as String).contains("gameStarted")){
+      loginBloc.add(LoginOutdated());
+      return;
+    }
+    print("heyheyeheheeee");
+    firebaseMessageHandler.messageReceiver(messageReceived);
+  }
   Future<String> retrieveAssetRegistry() async =>  assetRegistryManager.retrieveAssetRegistry();
   Future<Map> teamFromUserId(String userId) async => assetRegistryManager.teamFromUserId(userId);
 
 
   Future<String> addMove({@required  int objectId, @required int keyId, @required String type, int position}) async{
-    String extension="/move?objectId=${objectId.toString()}&userId=1&sessionId=1&type=$type";
+    String extension="/move?objectId=${objectId.toString()}&userId=$user&sessionId=$sessionId&type=$type";
     extension += "&keyId=${(type!="scan")?keyId:"null"}";
     if (position!=null) extension +="&position=$position";
     try {
       http.Response response = await _getRequest(extension);
       Map responseJson = json.decode(response.body);
-
       if (!responseJson["outcome"].contains("valid move")) {
         orderBloc.add(OrderInconsistencyDetected());
         throw SocketException("");
       }
       return response.body;
     }
-    on SocketException catch (ce){
-      throw ErrorThrown(CustomError(id: 51,
-          message: "Υπήρξε πρόβλημα με την αντιστοίχηση σας. Ελέγξτε την σύνδεση σας στο internet και προσπαθήστε ξανά."));
+     catch (ce){
+      errorBloc.add(ErrorThrown(CustomError(id: 51, message: "Υπήρξε πρόβλημα με την αντιστοίχηση σας. Παρακαλώ προσπαθήστε ξανά.")));
     }
 
   }
@@ -141,7 +152,7 @@ class ResourceManager{
   Future<List> getPastMoves(int lastKnownMove) async{
     try {
       http.Response response = await _getRequest(
-          "/past_moves/1?move=" + lastKnownMove.toString());
+          "/past_moves/$sessionId?move=" + lastKnownMove.toString());
       return (jsonDecode(response.body));
     }
     on SocketException{
@@ -151,7 +162,7 @@ class ResourceManager{
   }
 
   Future<List> getScore() async{
-    String parameters = "/score/1";
+    String parameters = "/score/$sessionId";
     try {
       http.Response response = await _getRequest(parameters);
       backgroundDisplayBloc.scoreboardChanged = false;
@@ -164,7 +175,7 @@ class ResourceManager{
   }
 
   Future<void> addScan({@required int objectId,DateTime dateTime }) async{
-    String parameters = "/scan/1?userId=$userId&objectId=$objectId&timestamp=$dateTime";
+    String parameters = "/scan/$sessionId?userId=$user&objectId=$objectId&timestamp=$dateTime";
     try{
       http.Response response = await _getRequest(parameters);
       if (!response.body.contains("confirm")) throw SocketException("");
@@ -176,7 +187,7 @@ class ResourceManager{
   }
 
   Future<List<Scan>> getScans() async{
-    String parameters = "/past_scans/1?userId=$userId";
+    String parameters = "/past_scans/$sessionId?userId=$user";
     http.Response response = await _getRequest(parameters);
     List<Scan> scanList = [];
     try{
@@ -188,7 +199,7 @@ class ResourceManager{
   }
 
   Future<List<int>> getKeys() async {
-    String parameters = "/keys?sessionId=1&userId=1";
+    String parameters = "/keys?sessionId=$sessionId&userId=$user";
     http.Response response = await _getRequest(parameters);
     Map responseJson = json.decode(response.body);
     try {
@@ -253,6 +264,22 @@ class ResourceManager{
     return matches;
   }
 
+  Future<String> playerNameFromUserId(String userId)async => assetRegistryManager.playerNameFromUserId(userId);
+
+
+  Future<List<Map>> getSessions(String user) async{
+    String parameters = "/sessions/$user";
+    try {
+      http.Response response = await _getRequest(parameters);
+      List responseJson = json.decode(response.body);
+      print(responseJson.runtimeType);
+      return responseJson.cast<Map>();
+    }
+    on SocketException catch (se){
+      throw ErrorThrown(CustomError(id: 57,
+          message: "Αδυναμία φόρτωσης παιχνιδιών. Ελέγξτε την σύνδεση σας στο internet."));
+    }
+  }
 
   void _updateConnectionStatus(ConnectivityResult event) {
     if ((ConnectivityResult.none != event) && connectivityState == ConnectivityResult.none){
@@ -265,3 +292,4 @@ class ResourceManager{
   }
 
 }
+

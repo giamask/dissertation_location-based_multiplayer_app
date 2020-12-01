@@ -73,9 +73,17 @@ class _NotificationTileState extends State<NotificationTile>{
                       return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            ZoomableInkwell(child: snapshot.hasData?snapshot.data[0]:CircularProgressIndicator(backgroundColor: Colors.purple[900],),imageName:widget.assets[0]),
+                            ZoomableInkwell(child: snapshot.hasData?snapshot.data[0]:CircularProgressIndicator(
+                              backgroundColor:
+                              Colors.purple[800],
+                              valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
+                            ),imageName:widget.assets[0]),
                             Icon(Icons.arrow_forward,color: Colors.white,),
-                            ZoomableInkwell(child: snapshot.hasData?snapshot.data[1]:CircularProgressIndicator(backgroundColor: Colors.purple[900],),imageName:widget.assets[1]),
+                            ZoomableInkwell(child: snapshot.hasData?snapshot.data[1]:CircularProgressIndicator(
+                              backgroundColor:
+                              Colors.purple[800],
+                              valueColor: new AlwaysStoppedAnimation<Color>(Colors.purple[600]),
+                            ),imageName:widget.assets[1]),
                           ]);
                     }
                   ),

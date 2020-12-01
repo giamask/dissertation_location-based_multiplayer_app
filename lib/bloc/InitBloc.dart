@@ -16,7 +16,7 @@ import 'OrderBloc.dart';
 import 'OrderEvent.dart';
 import 'ScanBloc.dart';
 import 'file:///D:/AS_Workspace/diplwmatikh_map_test/lib/Repositories/ResourceManager.dart';
-import 'package:diplwmatikh_map_test/main.dart';
+import 'package:diplwmatikh_map_test/GameScreen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'DialogBloc.dart';
 import 'InitEvent.dart';
@@ -26,14 +26,17 @@ import 'NotificationBloc.dart';
 
 class InitBloc extends Bloc<InitEvent,InitState>{
   DialogBloc dialogBloc ;
+  final String user;
+  final int sessionId;
   final BackgroundDisplayBloc backgroundDisplayBloc;
   final KeyManagerBloc keyManagerBloc;
   final NotificationBloc notificationBloc;
   final OrderBloc orderBloc;
   final ScanBloc scanBloc;
   final BuildContext context;
+  final ErrorBloc errorBloc;
 
-  InitBloc(this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc,this.scanBloc,this.context,){
+  InitBloc(this.user,this.sessionId,this.errorBloc,this.backgroundDisplayBloc,this.keyManagerBloc,this.notificationBloc,this.orderBloc,this.scanBloc,this.context,){
     dialogBloc = DialogBloc(context);
   }
 
@@ -51,8 +54,8 @@ class InitBloc extends Bloc<InitEvent,InitState>{
     if (event is GameInitialized && !(state is Initialized)) {
       ResourceManager resourceManager = ResourceManager();
       try {
-        await resourceManager.init(
-            backgroundDisplayBloc, keyManagerBloc, notificationBloc, orderBloc,BlocProvider.of<ErrorBloc>(context));
+        await resourceManager.init(user,sessionId,
+            backgroundDisplayBloc, keyManagerBloc, notificationBloc, orderBloc,errorBloc);
         String assetRegistry = await resourceManager.retrieveAssetRegistry();
         Set<Marker> markers = objectMarkersFromJson(assetRegistry);
         keyManagerBloc.add(KeyManagerListInitialization());
