@@ -17,8 +17,11 @@ class DragBloc extends Bloc<DragEvent,DragState>{
   final String objectId;
   final BuildContext context;
   final KeyManagerBloc keyManagerBloc;
+  DragTimer dragTimer ;
 
-  DragBloc(this.objectId,this.context, this.keyManagerBloc);
+  DragBloc(this.objectId,this.context, this.keyManagerBloc){
+    dragTimer = DragTimer(this);
+  }
 
   AnimationBloc scoreChangeAnimation = AnimationBloc();
 
@@ -28,7 +31,6 @@ class DragBloc extends Bloc<DragEvent,DragState>{
     return super.close();
   }
 
-
   @override
   DragState get initialState =>  DragEmpty();
 
@@ -36,12 +38,12 @@ class DragBloc extends Bloc<DragEvent,DragState>{
   Stream<DragState> mapEventToState(DragEvent event) async*{
     if (event is DragCommitted){
       try {
-        await ResourceManager().addMove(objectId: int.parse(objectId),
+        keyManagerBloc.add(KeyManagerCommit(int.parse(event.props[0])));
+        ResourceManager().addMove(objectId: int.parse(objectId),
             keyId: int.parse(event.props[0]),
             type: "match",
             position: event.props[1]);
-        keyManagerBloc.add(KeyManagerCommit(int.parse(event.props[0])));
-        startTimeoutTimer();
+        dragTimer.startTimer();
         yield DragRequestInProgress(keyId: int.parse(event.props[0]));
       }
       on ErrorThrown catch (et){
@@ -50,15 +52,16 @@ class DragBloc extends Bloc<DragEvent,DragState>{
       }
 
     }else if (event is DragResponseNegative){
-      //logic
+      dragTimer.stopTimer();
       yield DragEmpty();
     }else if (event is DragResponseTimeout){
       BlocProvider.of<ErrorBloc>(context).add(ErrorThrown(CustomError(id: 50,
           message: "Δεν υπήρξε απάντηση απο τον server. Ελέγξτε την σύνδεση σας στο internet.")));
-      if (state is DragRequestInProgress) keyManagerBloc.add(KeyManagerKeyUnmatch(state.props[0]));
+      keyManagerBloc.add(KeyManagerKeyUnmatch(state.props[0]));
       yield DragEmpty();
     }
     else if (event is DragResponsePositive || event is DragFullMessageReceived){
+      dragTimer.stopTimer();
       try {
         Image image = await ResourceManager().getImage(
             "k" + (event.props[0] as String) + ".jpg");
@@ -71,15 +74,26 @@ class DragBloc extends Bloc<DragEvent,DragState>{
 
   }
 
-  void startTimeoutTimer() async{
-    await Future.delayed(Duration(seconds: 10));
-    if (this.state is DragRequestInProgress){
-      this.add(DragResponseTimeout());
-    }
-  }
   void startImageTimer(DragEvent event) async{
     await Future.delayed(Duration(seconds: 10));
     this.add(event);
+  }
+
+}
+
+class DragTimer {
+  Timer timer;
+  DragBloc dragBloc;
+  DragTimer(this.dragBloc);
+
+  void startTimer() async{
+    timer = Timer(Duration(seconds: 10),(){
+      dragBloc.add(DragResponseTimeout());
+    });
+  }
+
+  void stopTimer() async{
+    timer?.cancel();
   }
 
 }

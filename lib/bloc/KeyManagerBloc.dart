@@ -40,13 +40,20 @@ class KeyManagerBloc extends Bloc<KeyManagerEvent, KeyManagerState> {
       List<int> elementsToRemoveList = keyList.where((element) => !newKeyList.contains(element)).toList();
       List<int> elementsToAddList = newKeyList.where((element) => !keyList.contains(element)).toList();
       //care for committed keys
-      if (event is KeyManagerKeyMatch && committedKeys.contains(event.props[2])){
-        committedKeys.remove(event.props[2]);
-      }else{
-        committedKeys.forEach((element){
-          elementsToRemoveList.remove(element);
-        });
-      }
+      // Αφαιρούμε τα στοιχεία που αντιστοιχήθηκαν
+      // Φροντίζουμε ώστε να αγνοηθούν αυτά που ειναι committed και συνεχίζουν να υπάρχουν
+      List<int> committedKeysToRemove= [];
+      committedKeys.forEach((element) {
+        if (!(newKeyList.contains(element))){
+        committedKeysToRemove.add(element);}
+        else{
+          elementsToAddList.remove(element);
+        }
+      });
+      committedKeysToRemove.forEach((element) {
+        committedKeys.remove(element);
+      });
+
       // removing items from the list
       elementsToRemoveList.sort((a, b) => elementsToRemoveList.indexOf(b) - elementsToRemoveList.indexOf(a));
       List<int> tempIndexList = [];
@@ -90,7 +97,7 @@ class KeyManagerBloc extends Bloc<KeyManagerEvent, KeyManagerState> {
       committedKeys.add(event.keyId);
       int index= keyList.indexOf(event.keyId);
       KeyListTile tile = tileList.elementAt(index);
-      animatedListKey.currentState.removeItem(index, (context, animation) => fastFadeAnimation(tile,animation),duration: Duration(milliseconds: 100));
+      animatedListKey.currentState.removeItem(index, (context, animation) => fastFadeAnimation(tile,animation),duration: Duration(milliseconds: 3));
       tileList.removeAt(index);
       keyList.remove(event.keyId);
       await Future.delayed(Duration(milliseconds: 1000));

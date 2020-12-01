@@ -137,16 +137,14 @@ class ResourceManager{
     try {
       http.Response response = await _getRequest(extension);
       Map responseJson = json.decode(response.body);
-
       if (!responseJson["outcome"].contains("valid move")) {
         orderBloc.add(OrderInconsistencyDetected());
         throw SocketException("");
       }
       return response.body;
     }
-    on SocketException catch (ce){
-      throw ErrorThrown(CustomError(id: 51,
-          message: "Υπήρξε πρόβλημα με την αντιστοίχηση σας. Παρακαλώ προσπαθήστε ξανά."));
+     catch (ce){
+      errorBloc.add(ErrorThrown(CustomError(id: 51, message: "Υπήρξε πρόβλημα με την αντιστοίχηση σας. Παρακαλώ προσπαθήστε ξανά.")));
     }
 
   }
